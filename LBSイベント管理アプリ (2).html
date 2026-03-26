@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LBSクラブせとうち 第2回イベント 管理アプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+============================================================ */
+:root {
+  --navy:    #0f2344;
+  --navy2:   #1a3a6b;
+  --gold:    #c9a84c;
+  --gold2:   #f0c96e;
+  --cream:   #faf8f3;
+  --green:   #1e7b34;
+  --green2:  #d4edda;
+  --green3:  #0d5c27;
+  --orange:  #b45f06;
+  --orange2: #fdebd0;
+  --red:     #c0392b;
+  --red2:    #fde8e6;
+  --blue2:   #dbeafe;
+  --gray:    #6b7280;
+  --gray2:   #f3f4f6;
+  --gray3:   #e5e7eb;
+  --white:   #ffffff;
+  --shadow:  0 2px 16px rgba(15,35,68,.10);
+  --radius:  10px;
+}
+
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--cream); color: var(--navy); font-size: 14px; }
+
+/* ============================================================
+   LAYOUT — HEADER & TABS
+============================================================ */
+.header {
+  background: linear-gradient(120deg, var(--navy) 55%, var(--navy2));
+  padding: 14px 24px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+  position: sticky; top: 0; z-index: 200;
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.header-title {
+  font-family: 'Oswald', sans-serif; font-size: 20px;
+  color: var(--gold2); letter-spacing: .08em;
+}
+.header-title span {
+  font-size: 12px; color: rgba(255,255,255,.55);
+  font-family: 'Noto Sans JP', sans-serif; font-weight: 400;
+  margin-left: 10px; letter-spacing: .04em;
+}
+.header-date {
+  font-size: 11px; color: var(--gold);
+  background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.35);
+  border-radius: 20px; padding: 3px 10px; white-space: nowrap;
+}
+.tabs { display: flex; }
+.tab {
+  padding: 9px 20px 11px; background: transparent; border: none;
+  color: rgba(255,255,255,.5); font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  border-bottom: 3px solid transparent; transition: all .18s;
+  letter-spacing: .04em; white-space: nowrap;
+}
+.tab:hover  { color: rgba(255,255,255,.85); }
+.tab.active { color: var(--gold2); border-bottom-color: var(--gold2); }
+
+.main { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ============================================================
+   SUMMARY CARDS
+============================================================ */
+.summary-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.card { background: var(--white); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); border-top: 4px solid var(--navy); }
+.card.green  { border-top-color: var(--green); }
+.card.orange { border-top-color: var(--orange); }
+.card.gold   { border-top-color: var(--gold); }
+.card.red    { border-top-color: var(--red); }
+.card-label  { font-size: 11px; color: var(--gray); font-weight: 500; margin-bottom: 6px; letter-spacing: .04em; }
+.card-value  { font-size: 28px; font-weight: 700; line-height: 1; }
+.card-sub    { font-size: 11px; color: var(--gray); margin-top: 4px; }
+.progress-wrap { background: var(--gray3); border-radius: 20px; height: 8px; overflow: hidden; margin-top: 8px; }
+.progress-bar  { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--green), var(--gold)); transition: width .4s; }
+
+/* ============================================================
+   FILTER BAR & BUTTONS
+============================================================ */
+.filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-bar input,
+.filter-bar select { border: 1px solid var(--gray3); border-radius: 7px; padding: 7px 12px; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; background: var(--white); color: var(--navy); outline: none; }
+.filter-bar input  { flex: 1; min-width: 160px; }
+.filter-bar input:focus,
+.filter-bar select:focus { border-color: var(--navy2); }
+
+.btn { padding: 7px 16px; border-radius: 7px; border: none; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.btn-primary { background: var(--navy);    color: var(--white); }
+.btn-primary:hover { background: var(--navy2); }
+.btn-gold    { background: var(--gold);    color: var(--navy); }
+.btn-gold:hover { background: var(--gold2); }
+.btn-outline { background: transparent; border: 1px solid var(--gray3); color: var(--navy); }
+.btn-outline:hover { border-color: var(--navy); background: var(--gray2); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger { background: var(--red2); color: var(--red); }
+
+/* ============================================================
+   TABLE
+============================================================ */
+.table-wrap { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { background: var(--navy); color: var(--white); padding: 10px 12px; font-weight: 700; text-align: left; font-size: 12px; letter-spacing: .04em; white-space: nowrap; }
+.tbl td { padding: 9px 12px; border-bottom: 1px solid var(--gray3); vertical-align: middle; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: #f8f9ff; }
+.tbl tr.row-tokubetsu td { background: #fffbeb; }
+.tbl tr.row-sansho    td { background: #fffef5; }
+.tbl tr.row-warn      td { background: #fff8f0; }
+.tbl .phase-header td { background: var(--gray2); font-weight: 700; font-size: 12px; letter-spacing: .06em; padding: 7px 12px; }
+
+/* ============================================================
+   BADGES & STATUS LABELS
+============================================================ */
+.badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.badge-tokubetsu { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.badge-sansho    { background: #fff8dc; color: #78350f; border: 1px solid #fde68a; }
+.badge-member    { background: var(--green2); color: var(--green3); border: 1px solid #86efac; }
+.badge-student   { background: var(--blue2);  color: #1e40af;       border: 1px solid #93c5fd; }
+.badge-general   { background: var(--gray2);  color: var(--gray);   border: 1px solid var(--gray3); }
+
+/* インラインプルダウン（テーブル内） */
+.sel-inline { border: 1px solid var(--gray3); border-radius: 6px; padding: 3px 6px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; background: var(--white); cursor: pointer; outline: none; max-width: 110px; }
+.sel-inline:focus { border-color: var(--navy2); }
+.sel-inline.s-参加   { color: var(--green3); font-weight: 700; }
+.sel-inline.s-欠席   { color: var(--red);    font-weight: 700; }
+.sel-inline.s-送信済 { color: #1e40af;       font-weight: 700; }
+.sel-inline.s-再送済 { color: var(--orange); font-weight: 700; }
+.sel-inline.t-確認中 { color: var(--orange); font-weight: 700; }
+.sel-inline.t-完了   { color: var(--green3); font-weight: 700; }
+.warn-icon { color: var(--orange); font-size: 13px; }
+
+/* ============================================================
+   INLINE INPUT (テーブル内テキスト)
+============================================================ */
+.inp-inline { border: 1px solid var(--gray3); border-radius: 6px; padding: 3px 8px; font-size: 12px; font-family: 'Noto Sans JP', sans-serif; width: 100%; outline: none; }
+.inp-inline:focus { border-color: var(--navy2); }
+
+/* ============================================================
+   MODAL
+============================================================ */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--white); border-radius: 14px; padding: 28px; width: 100%; max-width: 560px; box-shadow: 0 8px 40px rgba(0,0,0,.2); max-height: 90vh; overflow-y: auto; }
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; color: var(--navy); border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray3); }
+
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: 12px; font-weight: 700; color: var(--gray); margin-bottom: 5px; letter-spacing: .04em; }
+.form-row input,
+.form-row select,
+.form-row textarea { width: 100%; border: 1px solid var(--gray3); border-radius: 7px; padding: 8px 12px; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; outline: none; background: var(--white); }
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus { border-color: var(--navy2); }
+.form-row textarea { resize: vertical; min-height: 60px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.required { color: var(--red); }
+
+/* ============================================================
+   EXHIBITOR CARDS
+============================================================ */
+.ex-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; overflow: hidden; border-left: 5px solid var(--navy); }
+.ex-card.cat-beer  { border-left-color: #f59e0b; }
+.ex-card.cat-sake  { border-left-color: #8b5cf6; }
+.ex-card.cat-egg   { border-left-color: #f97316; }
+.ex-card.cat-meat  { border-left-color: #dc2626; }
+.ex-card.cat-veg   { border-left-color: #16a34a; }
+.ex-card.cat-snack { border-left-color: #ec4899; }
+.ex-card.cat-food  { border-left-color: #0891b2; }
+.ex-card.cat-tech  { border-left-color: #6366f1; }
+.ex-card.cat-chef  { border-left-color: #ca8a04; }
+.ex-card.cat-other { border-left-color: var(--gray); }
+.ex-card-inner { padding: 14px 18px; display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.ex-no   { font-size: 22px; font-weight: 900; color: var(--gray3); font-family: 'Oswald', sans-serif; min-width: 28px; }
+.ex-body { flex: 1; min-width: 200px; }
+.ex-cat  { font-size: 10px; font-weight: 700; color: var(--gray); letter-spacing: .08em; margin-bottom: 3px; }
+.ex-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.ex-product { font-size: 12px; color: var(--gray); margin-bottom: 6px; }
+.ex-keyword { font-size: 11px; background: var(--gray2); border-radius: 5px; padding: 3px 8px; display: inline-block; }
+.ex-controls { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; min-width: 200px; }
+.ex-controls-group { display: flex; flex-direction: column; gap: 4px; }
+.ex-controls-group label { font-size: 10px; color: var(--gray); }
+.ex-declined { opacity: .45; filter: grayscale(.7); }
+.ex-declined .ex-name { text-decoration: line-through; color: var(--gray); }
+
+/* ============================================================
+   SANSHO EDIT CARDS
+============================================================ */
+.se-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; border-left: 5px solid var(--navy2); transition: border-color .2s, box-shadow .3s; }
+.se-card.tokubetsu { border-left-color: var(--gold); }
+.se-card.sansho    { border-left-color: var(--gray); }
+.se-card.unsaved   { border-left-color: var(--orange); }
+.se-card-head { padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.se-card-head.tokubetsu { background: linear-gradient(90deg, #7f5c0a, var(--gold)); }
+.se-card-head.sansho    { background: linear-gradient(90deg, #374151, #6b7280); }
+.se-company { font-weight: 700; font-size: 15px; color: var(--navy); }
+.se-card-head.sansho .se-company { color: var(--white); }
+.se-card-head.tokubetsu .se-company { color: var(--navy); }
+.se-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.se-ku-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.3); white-space: nowrap; }
+.unsaved-label { font-size: 10px; background: var(--orange); color: white; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.se-body { padding: 16px 18px; }
+.se-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.se-field { display: flex; flex-direction: column; gap: 5px; }
+.se-field label { font-size: 11px; font-weight: 700; color: var(--gray); letter-spacing: .05em; }
+.se-field input,
+.se-field select { border: 1px solid var(--gray3); border-radius: 7px; padding: 8px 11px; font-size: 13px; font-family: 'Noto Sans JP', sans-serif; outline: none; transition: border .15s; }
+.se-field input:focus,
+.se-field select:focus { border-color: var(--navy2); background: #f8f9ff; }
+.se-field input.filled { border-color: #86efac; background: #f0fdf4; }
+.se-participants { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.se-p-block { background: var(--gray2); border-radius: 8px; padding: 12px 14px; }
+.se-p-block h4 { font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
+.se-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ============================================================
+   PRINT
+============================================================ */
+@media print {
+  /* 非表示にするUI要素 */
+  .header .tabs, .filter-bar, .btn, .modal-overlay, .no-print { display: none !important; }
+
+  /* ページ設定：A4縦・余白最小 */
+  @page {
+    size: A4 portrait;
+    margin: 6mm 8mm;
+  }
+
+  /* ベース */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { background: white; font-size: 10px; width: 100%; }
+  .main { padding: 0; max-width: 100%; }
+
+  /* 全タブ非表示→アクティブのみ表示 */
+  .section { display: none !important; }
+  .section.active { display: block !important; }
+
+  /* ヘッダー簡略化 */
+  .header { position: static; padding: 6px 8px 0; box-shadow: none; }
+  .header-title { font-size: 13px; }
+  .header-date  { font-size: 10px; }
+
+  /* サマリーカード：横並び・コンパクト */
+  .summary-row { gap: 6px; margin-bottom: 10px; }
+  .card { padding: 8px 10px; box-shadow: none; border: 1px solid #ddd; }
+  .card-value { font-size: 20px; }
+
+  /* テーブル全体 */
+  .table-wrap { box-shadow: none; border: 1px solid #ccc; }
+  .tbl { font-size: 9px; }
+  .tbl th { background: #0f2344 !important; color: white !important; padding: 5px 7px; font-size: 9px; }
+  .tbl td { padding: 5px 7px; }
+
+  /* 行の途中での改ページを禁止 */
+  .tbl tr           { break-inside: avoid; page-break-inside: avoid; }
+  .tbl thead        { display: table-header-group; } /* 各ページにヘッダー繰り返し */
+  .phase-header td  { break-before: avoid; page-break-before: avoid; }
+  .ex-card          { break-inside: avoid; page-break-inside: avoid; margin-bottom: 6px; }
+  .se-card          { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px; }
+  .card             { break-inside: avoid; page-break-inside: avoid; }
+
+  /* サマリー行は改ページしない */
+  .summary-row { break-inside: avoid; page-break-inside: avoid; }
+
+  /* インラインセレクト→テキスト表示（印刷時はセレクトボックスを隠す） */
+  .sel-inline { border: none; background: transparent; font-size: 9px; appearance: none; -webkit-appearance: none; pointer-events: none; }
+  .inp-inline { border: none; background: transparent; font-size: 9px; }
+
+  /* 出展企業カード */
+  .ex-card-inner { padding: 8px 10px; gap: 8px; }
+  .ex-name    { font-size: 11px; }
+  .ex-product { font-size: 9px; }
+  .ex-keyword { font-size: 8px; padding: 2px 5px; }
+  .ex-declined { display: none; } /* 辞退企業は印刷省略 */
+  #e-declined-wrap { display: none !important; }
+
+  /* 賛助会員編集カード */
+  .se-card-head { padding: 6px 10px; }
+  .se-body      { padding: 8px 10px; }
+  .se-row       { gap: 6px; }
+  .se-participants { gap: 6px; }
+  .se-p-block   { padding: 6px 8px; }
+  .se-actions   { display: none; } /* 保存ボタン類は印刷省略 */
+
+  /* フィルターバーの余韻を消す */
+  .filter-bar { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-title">LBS クラブせとうち <span>第2回特別イベント 管理アプリ</span></div>
+    <div class="header-date">📅 2025年5月18日（月）16:00〜</div>
+  </div>
+  <div class="tabs">
+    <button class="tab active"  onclick="showTab('participants', this)">👥 参加者管理</button>
+    <button class="tab"         onclick="showTab('sansho',       this)">✏️ 賛助会員編集</button>
+    <button class="tab"         onclick="showTab('tasks',        this)">✅ タスク管理</button>
+    <button class="tab"         onclick="showTab('exhibitors',   this)">🏢 出展企業</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ============================================================
+     TAB: 参加者管理
+============================================================ -->
+<div id="sec-participants" class="section active">
+  <div class="summary-row" id="p-summary"></div>
+  <div class="filter-bar">
+    <input type="text"  id="p-q"      placeholder="企業名・氏名で検索…" oninput="renderParticipants()">
+    <select             id="p-ku"     onchange="renderParticipants()">
+      <option value="">全区分</option>
+      <option>賛助会員（特別）</option><option>賛助会員</option>
+      <option>正会員</option><option>学生</option><option>一般</option>
+    </select>
+    <select             id="p-status" onchange="renderParticipants()">
+      <option value="">参加確認：全て</option>
+      <option>参加</option><option>欠席</option><option>未確認</option>
+    </select>
+    <button class="btn btn-gold"    onclick="openParticipantModal()">＋ 参加者追加</button>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ 印刷</button>
+  </div>
+  <div class="table-wrap">
+    <table class="tbl">
+      <thead><tr>
+        <th>区分</th><th>企業・団体名</th><th>氏名①</th><th>氏名②</th>
+        <th>メールアドレス</th><th>案内送信</th><th>参加確認</th>
+        <th>担当窓口</th><th>備考</th><th class="no-print">操作</th>
+      </tr></thead>
+      <tbody id="p-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB: 賛助会員編集
+============================================================ -->
+<div id="sec-sansho" class="section">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:10px">
+    <div>
+      <p style="font-size:16px; font-weight:700; color:var(--navy); margin-bottom:4px">賛助会員 データ編集</p>
+      <p style="font-size:12px; color:var(--gray)">担当者・氏名・メールなどを各社カードで直接入力します。各社最大2名まで参加可。</p>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center">
+      <select id="se-filter" onchange="renderSanshoEdit()" style="border:1px solid var(--gray3); border-radius:7px; padding:7px 12px; font-size:13px;">
+        <option value="">全区分表示</option>
+        <option value="賛助会員（特別）">特別賛助パートナーのみ</option>
+        <option value="賛助会員">賛助パートナーのみ</option>
+      </select>
+      <button class="btn btn-outline no-print" onclick="window.print()">🖨️ 印刷</button>
+    </div>
+  </div>
+  <div id="se-body"></div>
+</div>
+
+<!-- ============================================================
+     TAB: タスク管理
+============================================================ -->
+<div id="sec-tasks" class="section">
+  <div class="summary-row" id="t-summary"></div>
+  <div class="filter-bar">
+    <input type="text" id="t-q"      placeholder="タスク名・担当で検索…" oninput="renderTasks()">
+    <select            id="t-phase"  onchange="renderTasks()">
+      <option value="">全フェーズ</option>
+      <option>フェーズ①</option><option>フェーズ②</option><option>フェーズ③</option>
+      <option>フェーズ④</option><option>フェーズ⑤</option>
+    </select>
+    <select            id="t-status" onchange="renderTasks()">
+      <option value="">ステータス：全て</option>
+      <option>未着手</option><option>確認中</option><option>完了</option>
+    </select>
+    <button class="btn btn-gold"    onclick="openTaskModal()">＋ タスク追加</button>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ 印刷</button>
+  </div>
+  <div class="table-wrap">
+    <table class="tbl">
+      <thead><tr>
+        <th>フェーズ</th><th>期限</th><th>タスク</th><th>詳細・内容</th>
+        <th>担当</th><th>確認先</th><th>ステータス</th><th>メモ</th>
+        <th class="no-print">操作</th>
+      </tr></thead>
+      <tbody id="t-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB: 出展企業
+============================================================ -->
+<div id="sec-exhibitors" class="section">
+  <div class="summary-row" id="e-summary"></div>
+  <div class="filter-bar">
+    <input type="text" id="e-q"      placeholder="企業名・提供物で検索…" oninput="renderExhibitors()">
+    <select            id="e-status" onchange="renderExhibitors()">
+      <option value="">全ステータス</option>
+      <option>確定</option><option>交渉中</option><option>未確認</option>
+    </select>
+    <button class="btn btn-gold"    onclick="openExhibitorModal()">＋ 企業を追加</button>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ 印刷</button>
+  </div>
+  <div id="e-body"></div>
+  <!-- 辞退企業（折りたたみ） -->
+  <div id="e-declined-wrap" style="margin-top:16px; display:none">
+    <button class="btn btn-outline" style="width:100%; text-align:left; font-size:13px; color:var(--gray); padding:10px 16px;"
+      onclick="toggleDeclined()"><span id="e-declined-label">▶ 辞退・見送り企業を表示</span></button>
+    <div id="e-declined-body" style="display:none; margin-top:8px"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- ============================================================
+     MODAL: 参加者 追加/編集
+============================================================ -->
+<div class="modal-overlay" id="modal-p">
+  <div class="modal">
+    <h3 id="modal-p-title">参加者を追加</h3>
+    <div class="form-row">
+      <label>参加者区分</label>
+      <select id="fp-ku">
+        <option>賛助会員（特別）</option><option>賛助会員</option>
+        <option>正会員</option><option>学生</option><option>一般</option>
+      </select>
+    </div>
+    <div class="form-row"><label>企業・団体名</label><input type="text" id="fp-company" placeholder="株式会社〇〇"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>氏名①</label><input type="text" id="fp-name1" placeholder="山田 太郎"></div>
+      <div class="form-row"><label>氏名②（任意）</label><input type="text" id="fp-name2" placeholder="田中 花子"></div>
+    </div>
+    <div class="form-row"><label>メールアドレス</label><input type="email" id="fp-email" placeholder="example@co.jp"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>案内メール送信</label>
+        <select id="fp-mail"><option>未送信</option><option>送信済</option><option>再送済</option></select></div>
+      <div class="form-row"><label>参加確認</label>
+        <select id="fp-status"><option>未確認</option><option>参加</option><option>欠席</option><option>補欠</option></select></div>
+    </div>
+    <div class="form-row"><label>担当窓口</label><input type="text" id="fp-contact" placeholder="担当者名"></div>
+    <div class="form-row"><label>備考</label><textarea id="fp-note" placeholder="特記事項など"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-p')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveParticipant()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: タスク 追加/編集
+============================================================ -->
+<div class="modal-overlay" id="modal-t">
+  <div class="modal">
+    <h3 id="modal-t-title">タスクを追加</h3>
+    <div class="form-grid">
+      <div class="form-row"><label>フェーズ</label>
+        <select id="ft-phase">
+          <option>フェーズ①</option><option>フェーズ②</option><option>フェーズ③</option>
+          <option>フェーズ④</option><option>フェーズ⑤</option>
+        </select></div>
+      <div class="form-row"><label>期限（目安）</label><input type="text" id="ft-deadline" placeholder="例：〜4/18"></div>
+    </div>
+    <div class="form-row"><label>タスク名 <span class="required">*</span></label><input type="text" id="ft-task" placeholder="例：会場レイアウト案の作成"></div>
+    <div class="form-row"><label>詳細・内容</label><textarea id="ft-detail" placeholder="具体的な作業内容・確認事項など"></textarea></div>
+    <div class="form-grid">
+      <div class="form-row"><label>担当</label><input type="text" id="ft-owner" placeholder="事務局 / 担当者"></div>
+      <div class="form-row"><label>確認先・相手</label><input type="text" id="ft-target" placeholder="高島屋担当者 など"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>ステータス</label>
+        <select id="ft-status"><option>未着手</option><option>確認中</option><option>完了</option></select></div>
+      <div class="form-row"><label>完了日</label><input type="text" id="ft-done" placeholder="例：4/10"></div>
+    </div>
+    <div class="form-row"><label>メモ・リスク</label><textarea id="ft-memo" placeholder="要確認事項など。【要確認】を先頭に付けると警告表示されます"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-t')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveTask()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: 出展企業 追加/編集
+============================================================ -->
+<div class="modal-overlay" id="modal-e">
+  <div class="modal">
+    <h3 id="modal-e-title">出展企業を追加</h3>
+    <div class="form-grid">
+      <div class="form-row"><label>カテゴリ</label>
+        <select id="fe-cat">
+          <option>乾杯・ビール</option><option>第3の酒</option><option>卵料理</option>
+          <option>肉料理</option><option>主食・野菜</option><option>おつまみ</option>
+          <option>次世代フード</option><option>テクノロジー</option><option>調理担当</option><option>その他</option>
+        </select></div>
+      <div class="form-row"><label>ステータス</label>
+        <select id="fe-status"><option>未確認</option><option>交渉中</option><option>確定</option><option>辞退</option></select></div>
+    </div>
+    <div class="form-row"><label>企業名・担当者名 <span class="required">*</span></label><input type="text" id="fe-name" placeholder="例：株式会社〇〇"></div>
+    <div class="form-row"><label>提供物（予定）</label><input type="text" id="fe-product" placeholder="例：ブランド牛の特製ローストビーフ"></div>
+    <div class="form-row"><label>ビジネス視点・キーワード</label><input type="text" id="fe-keyword" placeholder="例：六次産業化 ／ 地域資源プロデュース"></div>
+    <div class="form-row"><label>担当窓口</label><input type="text" id="fe-contact" placeholder="担当者名"></div>
+    <div class="form-row"><label>備考・確認事項</label><textarea id="fe-note" placeholder="候補複数あり・提供物未定・謝礼要確認 など"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-e')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveExhibitor()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+'use strict';
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+const KU_LIST     = ['賛助会員（特別）','賛助会員','正会員','学生','一般'];
+const MAIL_LIST   = ['未送信','送信済','再送済'];
+const PART_LIST   = ['未確認','参加','欠席','補欠'];
+const TASK_LIST   = ['未着手','確認中','完了'];
+const EX_LIST     = ['未確認','交渉中','確定','辞退'];
+
+const KU_BADGE_CLS = {
+  '賛助会員（特別）':'badge-tokubetsu',
+  '賛助会員':'badge-sansho',
+  '正会員':'badge-member',
+  '学生':'badge-student',
+  '一般':'badge-general'
+};
+const CAT_KEY = {
+  '乾杯・ビール':'beer','第3の酒':'sake','卵料理':'egg','肉料理':'meat',
+  '主食・野菜':'veg','おつまみ':'snack','次世代フード':'food',
+  'テクノロジー':'tech','調理担当':'chef','その他':'other'
+};
+const PHASE_STYLE = {
+  'フェーズ①':{bg:'#d6e4f0',fg:'#2e5fa3'},
+  'フェーズ②':{bg:'#d9ead3',fg:'#38761d'},
+  'フェーズ③':{bg:'#fcead5',fg:'#b45f06'},
+  'フェーズ④':{bg:'#ead1dc',fg:'#741b47'},
+  'フェーズ⑤':{bg:'#fff2cc',fg:'#7f6000'},
+};
+
+// ============================================================
+// DATA — 参加者
+// ============================================================
+let participants = [
+  {id:1,  ku:'賛助会員（特別）', company:'Hiクラテス株式会社',             name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:2,  ku:'賛助会員（特別）', company:'株式会社大本組',                name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:3,  ku:'賛助会員（特別）', company:'国立大学法人 岡山大学',           name1:'那須 保友', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'那須学長はゲスト登壇予定。参加確認と兼ねて調整'},
+  {id:4,  ku:'賛助会員（特別）', company:'セリオ株式会社',                 name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:5,  ku:'賛助会員（特別）', company:'ちゅうぎんフィナンシャルグループ', name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:6,  ku:'賛助会員（特別）', company:'安田産業株式会社',               name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:7,  ku:'賛助会員', company:'エムテック株式会社',  name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:8,  ku:'賛助会員', company:'岡山商工会議所',       name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'各社2名まで参加可'},
+  {id:9,  ku:'賛助会員', company:'備前化成株式会社',     name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'出展企業（テクノロジー枠候補）と兼ねて調整'},
+  {id:10, ku:'賛助会員', company:'フジワラテクノアート', name1:'', name2:'', email:'', mail:'未送信', status:'未確認', contact:'', note:'出展企業（テクノロジー枠候補）と兼ねて調整'},
+];
+
+// ============================================================
+// DATA — タスク
+// ============================================================
+let tasks = [
+  {id:1,  phase:'フェーズ①', deadline:'〜4/4',  task:'開催日・会場の本確定',          detail:'高島屋8Fレストラン貸切の可否を確認。他会場候補も並行検討',                           owner:'事務局', target:'高島屋担当者',            status:'未着手', memo:'【要確認】会場は「候補」止まり。最優先で確定を'},
+  {id:2,  phase:'フェーズ①', deadline:'〜4/4',  task:'開催予算（総枠）の承認',         detail:'飲食費・装飾・スタッフ・謝礼等を含む総予算をクラブ内で承認。会場費200,000円想定',     owner:'事務局', target:'会長・LBSクラブ',          status:'未着手', memo:'【要確認】予算枠が資料に一切記載なし'},
+  {id:3,  phase:'フェーズ①', deadline:'〜4/4',  task:'那須学長への正式依頼',           detail:'「予定押え」から正式オファーへ。謝礼・交通費の有無も確認',                           owner:'担当者', target:'岡山大学広報室',            status:'未着手', memo:'【要確認】最重要ゲスト。早期確定が必須'},
+  {id:4,  phase:'フェーズ①', deadline:'〜4/4',  task:'MC（小野アナ）への正式依頼',     detail:'「想定」から正式交渉へ。スケジュール確認',                                           owner:'担当者', target:'テレビせとうち',            status:'未着手', memo:'【要確認】確定しないと台本制作が進まない'},
+  {id:5,  phase:'フェーズ①', deadline:'〜4/7',  task:'出展企業への正式打診開始',       detail:'各社へのアプローチ開始。提供物・搬入条件・費用負担を提示',                           owner:'担当者', target:'各出展企業担当者',          status:'未着手', memo:'点々は「予定押え」済み。他社は未確認'},
+  {id:6,  phase:'フェーズ①', deadline:'〜4/7',  task:'出展企業「参加返事締切」の設定', detail:'4/18を締切目安として設定。未回答は4/21にリマインド',                                 owner:'事務局', target:'全出展候補企業',            status:'未着手', memo:'返事なく進めると当日の人数・料理が確定しない'},
+  {id:7,  phase:'フェーズ②', deadline:'〜4/18', task:'参加者招待リスト作成',            detail:'LBS・プライド会員から30〜50名の候補リストを作成',                                    owner:'事務局', target:'会員DB参照',               status:'未着手', memo:'クローズドイベントのため選定基準を事前合意'},
+  {id:8,  phase:'フェーズ②', deadline:'〜4/18', task:'招待メール（案内文）の作成・送付', detail:'コンセプト・日時・会場・申込方法を明記したメールを招待者に一斉送信',                  owner:'担当者', target:'事務局（確認）',            status:'未着手', memo:'返信期限は4/30に設定。返信先メールアドレスを明記'},
+  {id:9,  phase:'フェーズ②', deadline:'〜4/30', task:'参加者返事締切（招待者）',         detail:'4/30を返信期限として設定。未回答は5/2リマインド',                                    owner:'事務局', target:'招待者全員',               status:'未着手', memo:'参加確定しないと飲食量・席数が組めない'},
+  {id:10, phase:'フェーズ②', deadline:'〜4/18', task:'出展企業返事締切（出展参加可否）', detail:'4/18を出展可否の最終返答期限に設定',                                                 owner:'担当者', target:'全出展候補8社',            status:'未着手', memo:'テクノロジー枠（フジワラ or 備前化成）は提供物未定'},
+  {id:11, phase:'フェーズ②', deadline:'〜4/18', task:'会場レイアウト案の作成',           detail:'マルシェ形式のブース配置・動線・スクリーン位置を設計',                               owner:'担当者', target:'会場担当者',               status:'未着手', memo:'立食orスタンディング未確定。早期決定を'},
+  {id:12, phase:'フェーズ②', deadline:'〜4/18', task:'当日運営スタッフの確保',           detail:'受付・ブース補助・進行補助・写真撮影役を確保',                                       owner:'事務局', target:'スタッフ候補',             status:'未着手', memo:'【要確認】スタッフ計画が資料に完全欠落'},
+  {id:13, phase:'フェーズ③', deadline:'〜5/2',  task:'参加者名簿の確定（第1版）',       detail:'参加確定者リストを作成。所属・役職・名刺情報を入力',                                 owner:'事務局', target:'事務局内',                 status:'未着手', memo:'名札・席次・当日資料の人数に反映'},
+  {id:14, phase:'フェーズ③', deadline:'〜5/2',  task:'出展企業ブース構成の確定',         detail:'各社の提供物・必要機材・搬入経路を一覧化',                                           owner:'担当者', target:'各出展企業',               status:'未着手', memo:'テクノロジー枠の提供物が未定のため早急に確認'},
+  {id:15, phase:'フェーズ③', deadline:'〜5/2',  task:'タイムスケジュール（確定版）作成', detail:'「仮の仮案」を本確定へ。MC・登壇者と内容すり合わせ',                                 owner:'担当者', target:'那須学長・小野アナ・各社',   status:'未着手', memo:'セッション①は30分で5社対応。モデレート設計が鍵'},
+  {id:16, phase:'フェーズ③', deadline:'〜5/7',  task:'台本・進行スクリプト（第1稿）',   detail:'MCと事前共有できる進行スクリプトを作成',                                             owner:'担当者', target:'小野アナ（MC）',            status:'未着手', memo:'質問リストや各社トピックも盛り込む'},
+  {id:17, phase:'フェーズ③', deadline:'〜5/7',  task:'食材発注・調理担当との打ち合わせ', detail:'出展各社の素材確認→中島社長・光畑氏へ調理指示。アレルギー対応も確認',              owner:'担当者', target:'中島社長・光畑氏・各出展企業', status:'未着手', memo:'アレルギー対応NG食材を事前に参加者へ確認'},
+  {id:18, phase:'フェーズ③', deadline:'〜5/7',  task:'備品・装飾リストの作成と手配',    detail:'テーブルクロス・案内看板・名札・映像機材・マイク等',                                 owner:'担当者', target:'会場担当者',               status:'未着手', memo:'会場に含まれるものと別途手配の切り分けを'},
+  {id:19, phase:'フェーズ③', deadline:'〜5/9',  task:'予算執行状況の中間確認',          detail:'発注済み費用を集計し、予算残額を確認',                                               owner:'事務局', target:'事務局',                   status:'未着手', memo:'予算超過リスクをこの時点で把握・調整'},
+  {id:20, phase:'フェーズ④', deadline:'〜5/9',  task:'参加者名簿（最終版）確定',         detail:'キャンセル・追加分を反映した最終リストへ更新',                                       owner:'事務局', target:'事務局内',                 status:'未着手', memo:'飲食数量・名札作成に反映'},
+  {id:21, phase:'フェーズ④', deadline:'〜5/9',  task:'参加者へのリマインド連絡',          detail:'会場・時間・持ち物（名刺等）を参加者にメール送付',                                   owner:'担当者', target:'参加者全員',               status:'未着手', memo:'地図・駐車場情報を添付'},
+  {id:22, phase:'フェーズ④', deadline:'〜5/12', task:'台本・進行スクリプト（最終版）',   detail:'MC・那須学長・登壇各社へ最終版を配布',                                               owner:'担当者', target:'全登壇者',                 status:'未着手', memo:'リハーサル実施の要否も確認'},
+  {id:23, phase:'フェーズ④', deadline:'〜5/14', task:'会場搬入・設営の段取り確認',        detail:'搬入時間・エレベータ使用・什器配置の最終調整',                                       owner:'担当者', target:'高島屋担当者',             status:'未着手', memo:'撤収完了時間も必ず確認すること'},
+  {id:24, phase:'フェーズ④', deadline:'〜5/15', task:'当日スタッフへのブリーフィング',    detail:'役割・持ち場・緊急連絡先を共有。タイムラインを説明',                                 owner:'事務局', target:'全スタッフ',               status:'未着手', memo:'万一欠席の場合のバックアップ体制も確認'},
+  {id:25, phase:'フェーズ④', deadline:'〜5/16', task:'最終チェックリスト確認',            detail:'備品・名簿・飲食・機材・台本の最終確認',                                             owner:'事務局', target:'担当者',                   status:'未着手', memo:'前日に全員でリスト照合を推奨'},
+  {id:26, phase:'フェーズ⑤', deadline:'13:00',  task:'搬入・仕込み開始',                detail:'出展各社・中島社長・光畑氏・スタッフ集合。ブース設営・料理準備',                    owner:'担当者', target:'各出展企業・会場',          status:'未着手', memo:'13:00〜15:45の2時間45分を設営に確保'},
+  {id:27, phase:'フェーズ⑤', deadline:'15:45',  task:'スタッフ・MCリハーサル',           detail:'マイク・映像・動線の最終確認。MC・那須学長と段取り確認',                            owner:'事務局', target:'全スタッフ・MC',            status:'未着手', memo:'想定外トラブルのロールプレイも推奨'},
+  {id:28, phase:'フェーズ⑤', deadline:'15:50',  task:'受付開始',                        detail:'参加者名簿照合・名札配布・案内',                                                     owner:'受付スタッフ', target:'参加者',             status:'未着手', memo:'名刺交換促進のひと声を添える'},
+  {id:29, phase:'フェーズ⑤', deadline:'16:00',  task:'イベント本番（16:00〜18:30）',     detail:'オープニング→セッション①→マルシェ→セッション②→クロージング',                     owner:'事務局', target:'全体統括',                 status:'未着手', memo:'各セッション時間厳守。進行遅延時のカット判断は事務局責任者'},
+  {id:30, phase:'フェーズ⑤', deadline:'18:30',  task:'撤収・清掃',                       detail:'ブース撤去・ゴミ分別・会場原状回復',                                                 owner:'全スタッフ', target:'会場担当者',            status:'未着手', memo:'撤収完了時間を会場と事前合意しておくこと'},
+  {id:31, phase:'フェーズ⑤', deadline:'19:30',  task:'振り返りメモの作成',               detail:'参加人数・商談件数・課題を当日中にメモ',                                             owner:'事務局', target:'担当者',                   status:'未着手', memo:'次回企画へのフィードバックとして記録'},
+];
+
+// ============================================================
+// DATA — 出展企業
+// ============================================================
+let exhibitors = [
+  {id:1,  no:1,  cat:'乾杯・ビール', name:'株式会社KKM川崎（五福工房）',       product:'TSC40周年記念クラフトビール「SETOUCHI BREW」', keyword:'地元農産物・酵母活用 ／ 究極のローカライズ戦略',    status:'未確認', contact:'', note:''},
+  {id:2,  no:2,  cat:'第3の酒',      name:'ナオライ株式会社',                  product:'浄酎（じょうちゅう）※日本酒を低温蒸留',         keyword:'伝統産業の革新 ／ 高付加価値化 ／ グローバル新市場', status:'未確認', contact:'', note:''},
+  {id:3,  no:3,  cat:'卵料理',       name:'株式会社点々',                       product:'1個100円卵の厚焼き玉子・プリン等',               keyword:'米ぬか活用の循環経済 ／ 限界集落での起業モデル',     status:'交渉中', contact:'', note:'企画案に「予定押え」記載あり'},
+  {id:4,  no:4,  cat:'肉料理',       name:'田中実業株式会社',                   product:'岡山ブランド牛（千屋牛等）特製ローストビーフ',    keyword:'エネルギー事業からの多角化 ／ 地域資源プロデュース', status:'未確認', contact:'', note:''},
+  {id:5,  no:5,  cat:'主食・野菜',   name:'農業法人 国定農産',                  product:'スマート農業米のリゾット・新鮮野菜',             keyword:'ドローン・自動操舵 ／ 儲かる農業の最前線',          status:'未確認', contact:'', note:''},
+  {id:6,  no:6,  cat:'おつまみ',     name:'安富牧場',                           product:'特製ソーセージ・手作りチーズ',                   keyword:'酪農から加工・観光までの六次産業化成功モデル',       status:'未確認', contact:'', note:''},
+  {id:7,  no:7,  cat:'次世代フード', name:'ハイスキー食品工業株式会社（候補）', product:'こんにゃくベース代替肉・代替シーフード',          keyword:'伝統食材×フードテック ／ 健康・サステナブル市場',   status:'未確認', contact:'', note:'㈱みゆきやフジモトも候補。要絞り込み'},
+  {id:8,  no:8,  cat:'テクノロジー', name:'フジワラテクノアート（候補）',        product:'未定（食のディープテック関連）',                  keyword:'微生物インダストリー ／ 世界基準の食技術',          status:'未確認', contact:'', note:'備前化成も候補。提供物・展示内容の検討が急務'},
+  {id:9,  no:'', cat:'調理担当',     name:'㈱長谷井商店　中島社長',             product:'当日料理全般の調理統括',                         keyword:'調理統括責任者',                                   status:'確定',   contact:'中島社長', note:'謝礼要合意。スケジュール押さえ済み'},
+  {id:10, no:'', cat:'調理担当',     name:'魚春（うおはる）　光畑氏',           product:'魚介・鮮魚系調理担当',                           keyword:'中島社長の声がけで参加',                            status:'確定',   contact:'光畑氏',   note:'謝礼要合意。スケジュール押さえ済み'},
+];
+
+// ============================================================
+// STATE — ID カウンター
+// ============================================================
+let nextPId = 11, nextTId = 32, nextEId = 11;
+let editingPId = null, editingTId = null, editingEId = null;
+let declinedOpen = false;
+const unsavedSE = new Set();
+
+// ============================================================
+// HELPERS
+// ============================================================
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const $ = id => document.getElementById(id);
+
+function kuBadge(ku) {
+  return `<span class="badge ${KU_BADGE_CLS[ku]||'badge-general'}">${esc(ku)}</span>`;
+}
+
+function selHtml(list, val, cls='sel-inline') {
+  return `<select class="${cls} s-${esc(val)}">${list.map(s=>`<option${s===val?' selected':''}>${esc(s)}</option>`).join('')}</select>`;
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  $('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  const render = {participants:renderParticipants, sansho:renderSanshoEdit, tasks:renderTasks, exhibitors:renderExhibitors};
+  if (render[name]) render[name]();
+}
+
+function closeModal(id) { $(id).classList.remove('open'); }
+function openModal(id)  { $(id).classList.add('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ============================================================
+// PARTICIPANTS — サマリー
+// ============================================================
+function renderParticipantSummary() {
+  const total     = participants.reduce((s,p) => s + (p.name2 ? 2 : p.name1 ? 1 : 1), 0);
+  const confirmed = participants.filter(p => p.status === '参加').length;
+  const sent      = participants.filter(p => p.mail !== '未送信').length;
+  const unsent    = participants.filter(p => p.mail === '未送信').length;
+  const pct = Math.min(Math.round(confirmed/50*100), 100);
+  $('p-summary').innerHTML = `
+    <div class="card gold">
+      <div class="card-label">招待者数（延べ）</div>
+      <div class="card-value">${total}</div>
+      <div class="card-sub">上限50名</div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    </div>
+    <div class="card green">
+      <div class="card-label">参加確定</div>
+      <div class="card-value" style="color:var(--green)">${confirmed}</div>
+      <div class="card-sub">名</div>
+    </div>
+    <div class="card">
+      <div class="card-label">案内送信済</div>
+      <div class="card-value">${sent}</div>
+      <div class="card-sub">社・名</div>
+    </div>
+    <div class="card orange">
+      <div class="card-label">案内未送信</div>
+      <div class="card-value" style="color:var(--orange)">${unsent}</div>
+      <div class="card-sub">要対応</div>
+    </div>`;
+}
+
+// ============================================================
+// PARTICIPANTS — テーブル
+// ============================================================
+function renderParticipants() {
+  renderParticipantSummary();
+  const q  = $('p-q').value.toLowerCase();
+  const ku = $('p-ku').value;
+  const st = $('p-status').value;
+  const list = participants.filter(p =>
+    (!ku || p.ku === ku) &&
+    (!st || p.status === st) &&
+    (!q  || `${p.company}${p.name1}${p.name2}${p.contact}`.toLowerCase().includes(q))
+  );
+  if (!list.length) {
+    $('p-body').innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:24px">該当するデータがありません</td></tr>';
+    return;
+  }
+  $('p-body').innerHTML = list.map(p => {
+    const rowCls = p.ku==='賛助会員（特別）'?'row-tokubetsu':p.ku==='賛助会員'?'row-sansho':'';
+    const warn   = p.mail==='未送信' ? '<span class="warn-icon">⚠️</span> ' : '';
+    const mailSel = `<select class="sel-inline s-${esc(p.mail)}" onchange="quickUpdate('p',${p.id},'mail',this.value)">${MAIL_LIST.map(s=>`<option${s===p.mail?' selected':''}>${s}</option>`).join('')}</select>`;
+    const statSel = `<select class="sel-inline s-${esc(p.status)}" onchange="quickUpdate('p',${p.id},'status',this.value)">${PART_LIST.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select>`;
+    return `<tr class="${rowCls}">
+      <td>${kuBadge(p.ku)}</td>
+      <td><strong>${esc(p.company)||'—'}</strong></td>
+      <td>${p.name1 ? esc(p.name1) : '<span style="color:var(--gray)">未記入</span>'}</td>
+      <td>${esc(p.name2)||'—'}</td>
+      <td style="font-size:12px;color:var(--gray)">${esc(p.email)||'—'}</td>
+      <td>${warn}${mailSel}</td>
+      <td>${statSel}</td>
+      <td>${esc(p.contact)||'—'}</td>
+      <td style="font-size:12px;color:var(--gray);max-width:160px">${esc(p.note)}</td>
+      <td class="no-print" style="white-space:nowrap">
+        <button class="btn btn-sm btn-outline" onclick="openParticipantModal(${p.id})">編集</button>
+        <button class="btn btn-sm btn-danger"  onclick="deleteItem('p',${p.id})" style="margin-left:4px">削除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// PARTICIPANTS — モーダル
+// ============================================================
+function openParticipantModal(id = null) {
+  editingPId = id;
+  $('modal-p-title').textContent = id ? '参加者を編集' : '参加者を追加';
+  const p = id ? participants.find(x => x.id === id) : {};
+  $('fp-ku').value      = p.ku      || '賛助会員（特別）';
+  $('fp-company').value = p.company || '';
+  $('fp-name1').value   = p.name1   || '';
+  $('fp-name2').value   = p.name2   || '';
+  $('fp-email').value   = p.email   || '';
+  $('fp-mail').value    = p.mail    || '未送信';
+  $('fp-status').value  = p.status  || '未確認';
+  $('fp-contact').value = p.contact || '';
+  $('fp-note').value    = p.note    || '';
+  openModal('modal-p');
+}
+
+function saveParticipant() {
+  const company = $('fp-company').value.trim();
+  const name1   = $('fp-name1').value.trim();
+  if (!company && !name1) { alert('企業名または氏名を入力してください'); return; }
+  const vals = {
+    ku: $('fp-ku').value, company, name1, name2: $('fp-name2').value.trim(),
+    email: $('fp-email').value.trim(), mail: $('fp-mail').value,
+    status: $('fp-status').value, contact: $('fp-contact').value.trim(), note: $('fp-note').value.trim()
+  };
+  if (editingPId) {
+    Object.assign(participants.find(x => x.id === editingPId), vals);
+  } else {
+    participants.push({ id: nextPId++, ...vals });
+  }
+  closeModal('modal-p');
+  renderParticipants();
+}
+
+// ============================================================
+// SANSHO EDIT
+// ============================================================
+function renderSanshoEdit() {
+  const filter = $('se-filter').value;
+  const list = participants.filter(p =>
+    (p.ku === '賛助会員（特別）' || p.ku === '賛助会員') &&
+    (!filter || p.ku === filter)
+  );
+  if (!list.length) { $('se-body').innerHTML = '<div style="text-align:center;color:var(--gray);padding:40px">表示する賛助会員がありません</div>'; return; }
+
+  const groups = [
+    { ku:'賛助会員（特別）', label:'特別賛助パートナー', cls:'tokubetsu' },
+    { ku:'賛助会員',         label:'賛助パートナー',     cls:'sansho'    },
+  ];
+  let html = '';
+  groups.forEach(g => {
+    const items = list.filter(p => p.ku === g.ku);
+    if (!items.length) return;
+    html += `<p style="font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--gray);margin-bottom:10px;margin-top:${html?'20px':'0'}">${g.label}（${items.length}社）</p>`;
+    items.forEach(p => {
+      const isUnsaved = unsavedSE.has(p.id);
+      html += `
+      <div class="se-card ${g.cls}${isUnsaved?' unsaved':''}" id="se-card-${p.id}">
+        <div class="se-card-head ${g.cls}">
+          <span class="se-company">${esc(p.company)}</span>
+          <div class="se-meta">
+            <span class="se-ku-badge">${esc(p.ku)}</span>
+            ${isUnsaved ? '<span class="unsaved-label">未保存の変更あり</span>' : ''}
+          </div>
+        </div>
+        <div class="se-body">
+          <div class="se-row">
+            <div class="se-field">
+              <label>案内メール送信</label>
+              <select id="se-mail-${p.id}" onchange="seMarkUnsaved(${p.id})">${MAIL_LIST.map(s=>`<option${s===p.mail?' selected':''}>${s}</option>`).join('')}</select>
+            </div>
+            <div class="se-field">
+              <label>参加確認ステータス</label>
+              <select id="se-status-${p.id}" onchange="seMarkUnsaved(${p.id})">${PART_LIST.map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select>
+            </div>
+            <div class="se-field">
+              <label>担当窓口</label>
+              <input id="se-contact-${p.id}" value="${esc(p.contact)}" placeholder="担当者名・部署名" oninput="seMarkUnsaved(${p.id})">
+            </div>
+            <div class="se-field">
+              <label>メールアドレス</label>
+              <input type="email" id="se-email-${p.id}" value="${esc(p.email)}" placeholder="example@co.jp" oninput="seMarkUnsaved(${p.id})">
+            </div>
+          </div>
+          <div class="se-participants">
+            <div class="se-p-block">
+              <h4>👤 参加者 1名目　${p.name1 ? '<span style="color:var(--green);font-size:10px">✓ 入力済</span>' : '<span style="color:var(--orange);font-size:10px">未記入</span>'}</h4>
+              <div class="se-field">
+                <label>氏名</label>
+                <input id="se-name1-${p.id}" value="${esc(p.name1)}" placeholder="山田 太郎" class="${p.name1?'filled':''}" oninput="seMarkUnsaved(${p.id});this.className=this.value?'filled':''">
+              </div>
+            </div>
+            <div class="se-p-block">
+              <h4>👤 参加者 2名目　${p.name2 ? '<span style="color:var(--green);font-size:10px">✓ 入力済</span>' : '<span style="color:var(--gray);font-size:10px">任意</span>'}</h4>
+              <div class="se-field">
+                <label>氏名</label>
+                <input id="se-name2-${p.id}" value="${esc(p.name2)}" placeholder="田中 花子（2名の場合）" class="${p.name2?'filled':''}" oninput="seMarkUnsaved(${p.id});this.className=this.value?'filled':''">
+              </div>
+            </div>
+          </div>
+          <div class="se-field" style="margin-bottom:12px">
+            <label>備考・メモ</label>
+            <input id="se-note-${p.id}" value="${esc(p.note)}" placeholder="特記事項など" oninput="seMarkUnsaved(${p.id})">
+          </div>
+          <div class="se-actions">
+            <button class="btn btn-sm btn-outline" onclick="seReset(${p.id})">元に戻す</button>
+            <button class="btn btn-sm btn-primary" style="padding:6px 18px" onclick="seSave(${p.id})">✓ 保存</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  $('se-body').innerHTML = html;
+}
+
+function seMarkUnsaved(id) {
+  unsavedSE.add(id);
+  const card = $('se-card-'+id);
+  if (card) card.classList.add('unsaved');
+}
+
+function seSave(id) {
+  const p = participants.find(x => x.id === id);
+  if (!p) return;
+  p.mail    = $(`se-mail-${id}`).value;
+  p.status  = $(`se-status-${id}`).value;
+  p.contact = $(`se-contact-${id}`).value.trim();
+  p.email   = $(`se-email-${id}`).value.trim();
+  p.name1   = $(`se-name1-${id}`).value.trim();
+  p.name2   = $(`se-name2-${id}`).value.trim();
+  p.note    = $(`se-note-${id}`).value.trim();
+  unsavedSE.delete(id);
+  const card = $('se-card-'+id);
+  if (card) {
+    card.classList.remove('unsaved');
+    card.style.boxShadow = '0 0 0 3px var(--green)';
+    setTimeout(() => { card.style.boxShadow = ''; }, 900);
+  }
+  renderParticipantSummary();
+}
+
+function seReset(id) {
+  if (!confirm('この社の変更を元に戻しますか？')) return;
+  unsavedSE.delete(id);
+  renderSanshoEdit();
+}
+
+// ============================================================
+// TASKS — サマリー
+// ============================================================
+function renderTaskSummary() {
+  const total = tasks.length;
+  const done  = tasks.filter(t => t.status === '完了').length;
+  const mid   = tasks.filter(t => t.status === '確認中').length;
+  const warn  = tasks.filter(t => t.memo.includes('【要確認】') && t.status !== '完了').length;
+  const pct   = Math.round(done/total*100);
+  $('t-summary').innerHTML = `
+    <div class="card">
+      <div class="card-label">総タスク数</div><div class="card-value">${total}</div><div class="card-sub">件</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">完了</div>
+      <div class="card-value" style="color:var(--green)">${done}</div>
+      <div class="card-sub">${pct}%</div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    </div>
+    <div class="card orange">
+      <div class="card-label">確認中</div><div class="card-value" style="color:var(--orange)">${mid}</div><div class="card-sub">件</div>
+    </div>
+    <div class="card red">
+      <div class="card-label">⚠️ 要確認</div><div class="card-value" style="color:var(--red)">${warn}</div><div class="card-sub">件</div>
+    </div>`;
+}
+
+// ============================================================
+// TASKS — テーブル
+// ============================================================
+function renderTasks() {
+  renderTaskSummary();
+  const q  = $('t-q').value.toLowerCase();
+  const ph = $('t-phase').value;
+  const st = $('t-status').value;
+  const list = tasks.filter(t =>
+    (!ph || t.phase === ph) &&
+    (!st || t.status === st) &&
+    (!q  || `${t.task}${t.owner}${t.detail}`.toLowerCase().includes(q))
+  );
+  let html = '', lastPhase = null;
+  list.forEach(t => {
+    if (t.phase !== lastPhase) {
+      const s = PHASE_STYLE[t.phase] || {bg:'#eee',fg:'#333'};
+      html += `<tr class="phase-header"><td colspan="9" style="background:${s.bg};color:${s.fg}">${t.phase}</td></tr>`;
+      lastPhase = t.phase;
+    }
+    const isWarn = t.memo.includes('【要確認】') && t.status !== '完了';
+    const stSel = `<select class="sel-inline t-${esc(t.status)}" onchange="quickUpdate('t',${t.id},'status',this.value)">${TASK_LIST.map(s=>`<option${s===t.status?' selected':''}>${s}</option>`).join('')}</select>`;
+    html += `<tr class="${isWarn?'row-warn':''}">
+      <td style="font-size:11px;color:var(--gray)">${t.phase}</td>
+      <td style="white-space:nowrap;font-size:12px;font-weight:700">${esc(t.deadline)}</td>
+      <td><strong>${esc(t.task)}</strong>${isWarn?' <span class="warn-icon">⚠️</span>':''}</td>
+      <td style="font-size:12px;color:var(--gray);max-width:220px">${esc(t.detail)}</td>
+      <td style="white-space:nowrap">${esc(t.owner)}</td>
+      <td style="font-size:12px;color:var(--gray);white-space:nowrap">${esc(t.target)}</td>
+      <td>${stSel}</td>
+      <td style="font-size:11px;color:${isWarn?'var(--orange)':'var(--gray)'};max-width:180px">${esc(t.memo)}</td>
+      <td class="no-print" style="white-space:nowrap">
+        <button class="btn btn-sm btn-outline" onclick="openTaskModal(${t.id})">編集</button>
+        <button class="btn btn-sm btn-danger"  onclick="deleteItem('t',${t.id})" style="margin-left:4px">削除</button>
+      </td>
+    </tr>`;
+  });
+  $('t-body').innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:24px">該当するタスクがありません</td></tr>';
+}
+
+// ============================================================
+// TASKS — モーダル
+// ============================================================
+function openTaskModal(id = null) {
+  editingTId = id;
+  $('modal-t-title').textContent = id ? 'タスクを編集' : 'タスクを追加';
+  const t = id ? tasks.find(x => x.id === id) : {};
+  $('ft-phase').value    = t.phase    || 'フェーズ①';
+  $('ft-deadline').value = t.deadline || '';
+  $('ft-task').value     = t.task     || '';
+  $('ft-detail').value   = t.detail   || '';
+  $('ft-owner').value    = t.owner    || '事務局';
+  $('ft-target').value   = t.target   || '';
+  $('ft-status').value   = t.status   || '未着手';
+  $('ft-done').value     = t.done     || '';
+  $('ft-memo').value     = t.memo     || '';
+  openModal('modal-t');
+}
+
+function saveTask() {
+  const name = $('ft-task').value.trim();
+  if (!name) { alert('タスク名を入力してください'); return; }
+  const vals = {
+    phase: $('ft-phase').value, deadline: $('ft-deadline').value.trim(), task: name,
+    detail: $('ft-detail').value.trim(), owner: $('ft-owner').value.trim(),
+    target: $('ft-target').value.trim(), status: $('ft-status').value,
+    done: $('ft-done').value.trim(), memo: $('ft-memo').value.trim()
+  };
+  if (editingTId) {
+    Object.assign(tasks.find(x => x.id === editingTId), vals);
+  } else {
+    tasks.push({ id: nextTId++, ...vals });
+  }
+  closeModal('modal-t');
+  renderTasks();
+}
+
+// ============================================================
+// EXHIBITORS — サマリー
+// ============================================================
+function renderExhibitorSummary() {
+  const active    = exhibitors.filter(e => e.status !== '辞退');
+  const confirmed = active.filter(e => e.status === '確定' && e.cat !== '調理担当').length;
+  const chefs     = exhibitors.filter(e => e.cat === '調理担当' && e.status === '確定').length;
+  const nego      = active.filter(e => e.status === '交渉中').length;
+  const unconf    = active.filter(e => e.status === '未確認').length;
+  const declined  = exhibitors.filter(e => e.status === '辞退').length;
+  $('e-summary').innerHTML = `
+    <div class="card green">
+      <div class="card-label">出展確定</div><div class="card-value" style="color:var(--green)">${confirmed}</div><div class="card-sub">社</div>
+    </div>
+    <div class="card gold">
+      <div class="card-label">調理担当確定</div><div class="card-value" style="color:var(--orange)">${chefs}</div><div class="card-sub">名</div>
+    </div>
+    <div class="card orange">
+      <div class="card-label">交渉中</div><div class="card-value" style="color:var(--orange)">${nego}</div><div class="card-sub">社　要フォロー</div>
+    </div>
+    <div class="card">
+      <div class="card-label">未確認</div><div class="card-value">${unconf}</div>
+      <div class="card-sub">${declined ? `<span style="color:var(--red)">辞退 ${declined}社</span>` : '辞退なし'}</div>
+    </div>`;
+}
+
+// ============================================================
+// EXHIBITORS — カード
+// ============================================================
+function buildExhibitorCard(e, dimmed) {
+  const catKey = CAT_KEY[e.cat] || 'other';
+  const stSel = `<select class="sel-inline" style="color:${{確定:'var(--green)',交渉中:'var(--orange)',未確認:'var(--gray)',辞退:'var(--red)'}[e.status]};font-weight:700"
+    onchange="quickUpdate('e',${e.id},'status',this.value);renderExhibitors()">${EX_LIST.map(s=>`<option${s===e.status?' selected':''}>${s}</option>`).join('')}</select>`;
+  return `
+  <div class="ex-card cat-${catKey}${dimmed?' ex-declined':''}">
+    <div class="ex-card-inner">
+      <div class="ex-no">${e.no||'★'}</div>
+      <div class="ex-body">
+        <div class="ex-cat">${esc(e.cat)}</div>
+        <div class="ex-name">${esc(e.name)}</div>
+        <div class="ex-product">提供：${esc(e.product||'—')}</div>
+        ${e.keyword ? `<div class="ex-keyword">${esc(e.keyword)}</div>` : ''}
+        ${e.note    ? `<div style="font-size:11px;color:${dimmed?'var(--gray)':'var(--orange)'};margin-top:6px">${dimmed?'':'⚠️ '}${esc(e.note)}</div>` : ''}
+      </div>
+      <div class="ex-controls">
+        <div class="ex-controls-group"><label>ステータス</label>${stSel}</div>
+        <div class="ex-controls-group">
+          <label>担当窓口</label>
+          <input class="inp-inline" value="${esc(e.contact)}" placeholder="担当者名" style="width:110px" onchange="quickUpdate('e',${e.id},'contact',this.value)">
+        </div>
+        <div class="ex-controls-group no-print" style="flex-direction:row;gap:4px;align-self:center;margin-top:12px">
+          <button class="btn btn-sm btn-outline" onclick="openExhibitorModal(${e.id})">編集</button>
+          <button class="btn btn-sm btn-danger"  onclick="deleteItem('e',${e.id})">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// EXHIBITORS — 一覧
+// ============================================================
+function renderExhibitors() {
+  renderExhibitorSummary();
+  const q  = $('e-q').value.toLowerCase();
+  const st = $('e-status').value;
+  const active = exhibitors.filter(e =>
+    e.status !== '辞退' &&
+    (!st || e.status === st) &&
+    (!q  || `${e.name}${e.product||''}${e.keyword||''}`.toLowerCase().includes(q))
+  );
+  $('e-body').innerHTML = active.length
+    ? active.map(e => buildExhibitorCard(e, false)).join('')
+    : '<div style="text-align:center;color:var(--gray);padding:32px">該当する企業がありません</div>';
+
+  const declined = exhibitors.filter(e => e.status === '辞退');
+  const wrap = $('e-declined-wrap');
+  if (declined.length) {
+    wrap.style.display = 'block';
+    $('e-declined-label').textContent = (declinedOpen?'▼ ':'▶ ') + `辞退・見送り企業（${declined.length}社）`;
+    $('e-declined-body').innerHTML = declined.map(e => buildExhibitorCard(e, true)).join('');
+    $('e-declined-body').style.display = declinedOpen ? 'block' : 'none';
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function toggleDeclined() {
+  declinedOpen = !declinedOpen;
+  renderExhibitors();
+}
+
+// ============================================================
+// EXHIBITORS — モーダル
+// ============================================================
+function openExhibitorModal(id = null) {
+  editingEId = id;
+  $('modal-e-title').textContent = id ? '出展企業を編集' : '出展企業を追加';
+  const e = id ? exhibitors.find(x => x.id === id) : {};
+  $('fe-cat').value     = e.cat     || 'その他';
+  $('fe-status').value  = e.status  || '未確認';
+  $('fe-name').value    = e.name    || '';
+  $('fe-product').value = e.product || '';
+  $('fe-keyword').value = e.keyword || '';
+  $('fe-contact').value = e.contact || '';
+  $('fe-note').value    = e.note    || '';
+  openModal('modal-e');
+}
+
+function saveExhibitor() {
+  const name = $('fe-name').value.trim();
+  if (!name) { alert('企業名を入力してください'); return; }
+  const vals = {
+    cat: $('fe-cat').value, status: $('fe-status').value, name,
+    product: $('fe-product').value.trim(), keyword: $('fe-keyword').value.trim(),
+    contact: $('fe-contact').value.trim(), note: $('fe-note').value.trim()
+  };
+  if (editingEId) {
+    Object.assign(exhibitors.find(x => x.id === editingEId), vals);
+  } else {
+    exhibitors.push({ id: nextEId++, no: '', ...vals });
+  }
+  closeModal('modal-e');
+  renderExhibitors();
+}
+
+// ============================================================
+// GENERIC HELPERS — クイック更新・削除
+// ============================================================
+function quickUpdate(type, id, field, val) {
+  const store = {p:participants, t:tasks, e:exhibitors}[type];
+  const item = store.find(x => x.id === id);
+  if (item) { item[field] = val; }
+  if (type === 'p') renderParticipantSummary();
+  if (type === 't') renderTaskSummary();
+  if (type === 'e') renderExhibitorSummary();
+}
+
+function deleteItem(type, id) {
+  const store = {p:participants, t:tasks, e:exhibitors}[type];
+  const item = store.find(x => x.id === id);
+  if (!item) return;
+  const label = item.company || item.task || item.name || '';
+  const hint = type === 'e' ? '\n（削除せず「辞退」ステータスにすることもできます）' : '';
+  if (!confirm(`「${label}」を削除しますか？${hint}`)) return;
+  const map = {p:'participants', t:'tasks', e:'exhibitors'};
+  window[map[type]] = store.filter(x => x.id !== id);
+  const render = {p:renderParticipants, t:renderTasks, e:renderExhibitors};
+  render[type]();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderParticipants();
+</script>
+</body>
+</html>
