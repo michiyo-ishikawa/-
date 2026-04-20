@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>上條智子さん カムバックパーティー</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Hiragino Sans','Noto Sans JP',sans-serif; background:#f5f0e8; min-height:100vh; font-size:14px; }
+.event-header { background:linear-gradient(135deg,#2a1f0e,#3d2d10,#2a1f0e); padding:14px 16px 0; }
+.event-title { color:#c9a84c; font-size:17px; font-weight:700; margin-bottom:4px; }
+.event-meta { font-size:11.5px; color:#d4b97a; margin-bottom:14px; }
+.stats-row { display:flex; gap:6px; margin-bottom:8px; overflow-x:auto; scrollbar-width:none; }
+.stats-row::-webkit-scrollbar { display:none; }
+.stat-box { background:rgba(0,0,0,.35); border:1px solid rgba(201,168,76,.3); border-radius:8px; padding:10px 14px; text-align:center; min-width:72px; flex-shrink:0; }
+.stat-num { color:#c9a84c; font-size:22px; font-weight:700; line-height:1; margin-bottom:4px; }
+.stat-label { color:#a89060; font-size:10px; }
+.sync-bar { font-size:10px; padding:6px 0 10px; }
+.sync-ok { color:#7a9; } .sync-ing { color:#fac775; } .sync-err { color:#f09595; }
+.filter-tabs { background:#f5f0e8; padding:10px 12px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid #e0d5c0; }
+.filter-tabs::-webkit-scrollbar { display:none; }
+.tab { border-radius:999px; border:1.5px solid #c9a84c; padding:6px 14px; font-size:12px; white-space:nowrap; cursor:pointer; background:transparent; color:#6b5a35; font-family:inherit; }
+.tab.active { background:#2a1f0e; color:#fff; border-color:#2a1f0e; }
+.search-row { display:flex; gap:8px; padding:10px 12px; background:#f5f0e8; border-bottom:1px solid #e0d5c0; }
+.search-input { flex:1; border:1.5px solid #d4c49a; border-radius:8px; padding:9px 12px; font-size:13px; font-family:inherit; background:#fff; outline:none; min-width:0; }
+.assigned-filter-select { border:1.5px solid #d4c49a; border-radius:8px; padding:9px 8px; font-size:12px; font-family:inherit; background:#fff; outline:none; color:#6b5a35; flex-shrink:0; }
+.action-row { display:flex; gap:6px; padding:10px 12px; background:#f5f0e8; border-bottom:1px solid #e0d5c0; flex-wrap:wrap; }
+.btn { border:none; border-radius:8px; padding:9px 12px; font-size:12.5px; font-family:inherit; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.btn-undo  { background:#fff; color:#444; border:1.5px solid #ccc; }
+.btn-add   { background:#c9a84c; color:#fff; }
+.btn-excel { background:#2d6a4f; color:#fff; }
+.btn-import{ background:#1a5276; color:#fff; }
+.btn-pdf   { background:#7b2d2d; color:#fff; }
+.btn-dedup { background:#5a2d82; color:#fff; }
+.guest-list { padding:10px 12px; }
+.guest-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:10px; overflow:hidden; }
+.guest-card-top { display:flex; align-items:center; gap:10px; padding:12px 14px 10px; border-bottom:1px solid #f0ebe0; }
+.guest-num { color:#aaa; font-size:12px; min-width:18px; }
+.toggle-wrap { width:44px; height:26px; border-radius:999px; cursor:pointer; position:relative; flex-shrink:0; transition:background .2s; }
+.toggle-thumb { position:absolute; top:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:left .2s; }
+.badge { border-radius:6px; padding:3px 8px; font-size:11px; font-weight:600; flex-shrink:0; }
+.badge-required { background:#fdf3d7; color:#9a7420; border:1px solid #e8d08a; }
+.badge-sent     { background:#d4edda; color:#1d6a3a; border:1px solid #a8d5b5; }
+.badge-notneed  { background:#f0f0f0; color:#666;    border:1px solid #ddd; }
+.guest-name { font-size:16px; font-weight:700; color:#1a1a1a; flex:1; }
+.guest-role { font-size:12px; color:#888; white-space:nowrap; }
+.company-row { display:flex; align-items:center; gap:6px; padding:8px 14px 10px; border-bottom:1px solid #f0ebe0; font-size:12.5px; color:#555; }
+.guest-fields { display:grid; grid-template-columns:1fr 1fr; }
+.field-group { padding:10px 14px; border-bottom:1px solid #f5f0e8; }
+.field-group:nth-child(odd) { border-right:1px solid #f0ebe0; }
+.field-label { font-size:11px; color:#999; margin-bottom:6px; }
+.field-input,.field-select { border:1.5px solid #e0d5c0; border-radius:8px; padding:7px 8px; font-size:13px; width:100%; font-family:inherit; background:#fff; outline:none; }
+.memo-group { padding:10px 14px 12px; }
+.field-textarea { border:1.5px solid #e0d5c0; border-radius:8px; padding:8px 10px; font-size:13px; width:100%; font-family:inherit; resize:none; min-height:52px; outline:none; }
+.card-actions { display:flex; gap:8px; padding:0 14px 12px; }
+.btn-edit   { flex:1; padding:8px; border-radius:8px; border:1.5px solid #c9a84c; background:#fff; color:#c9a84c; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.btn-delete { flex:1; padding:8px; border-radius:8px; border:1.5px solid #e74c3c; background:#fff; color:#e74c3c; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; align-items:flex-end; }
+.modal-backdrop.open { display:flex; }
+.modal { background:#fff; border-radius:18px 18px 0 0; padding:20px 16px 32px; width:100%; max-height:85vh; overflow-y:auto; }
+.modal h3 { margin-bottom:14px; font-size:16px; color:#2a1f0e; }
+.modal p.hint { font-size:12px; color:#888; margin-bottom:8px; line-height:1.5; }
+.modal input,.modal select,.modal textarea { width:100%; border:1.5px solid #d4c49a; border-radius:8px; padding:10px 12px; font-size:14px; font-family:inherit; margin-bottom:10px; outline:none; box-sizing:border-box; }
+.modal textarea { resize:none; min-height:80px; }
+.modal-btns { display:flex; gap:8px; margin-top:6px; }
+.modal-cancel  { flex:1; padding:12px; border:none; border-radius:10px; font-size:14px; font-weight:600; background:#f0ebe0; color:#555; cursor:pointer; font-family:inherit; }
+.modal-confirm { flex:1; padding:12px; border:none; border-radius:10px; font-size:14px; font-weight:600; background:#c9a84c; color:#fff; cursor:pointer; font-family:inherit; }
+.modal-danger  { flex:1; padding:12px; border:none; border-radius:10px; font-size:14px; font-weight:600; background:#7b2d2d; color:#fff; cursor:pointer; font-family:inherit; }
+.toast { position:fixed; top:16px; left:50%; transform:translateX(-50%); padding:10px 20px; border-radius:10px; color:#fff; font-weight:600; font-size:13px; z-index:200; display:none; white-space:nowrap; max-width:90vw; text-align:center; }
+.empty { text-align:center; color:#aaa; padding:30px; }
+.dedup-list { max-height:55vh; overflow-y:auto; border:1px solid #e0d5c0; border-radius:8px; margin-bottom:10px; }
+.dedup-item { padding:9px 12px; border-bottom:1px solid #f0ebe0; font-size:13px; color:#444; display:flex; align-items:flex-start; gap:10px; }
+.dedup-item:last-child { border-bottom:none; }
+.dedup-item span { color:#888; font-size:11px; margin-left:4px; }
+.dedup-item input[type=checkbox] { margin-top:2px; flex-shrink:0; width:18px; height:18px; accent-color:#7b2d2d; cursor:pointer; }
+.dedup-item-body { flex:1; }
+.dedup-item-names { font-size:11px; color:#aaa; margin-top:3px; }
+.dedup-item-names b { color:#555; }
+/* ファイルドロップゾーン */
+.dropzone { border:2px dashed #d4c49a; border-radius:10px; padding:20px; text-align:center; color:#888; font-size:13px; margin-bottom:10px; cursor:pointer; transition:background .2s; }
+.dropzone.hover { background:#fdf9f0; border-color:#c9a84c; }
+.dropzone input[type=file] { display:none; }
+/* PDF印刷用スタイル */
+@media print {
+  body { background:#fff; font-size:10px; margin:0; }
+  .event-header { background:#2a1f0e !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:6px 10px 4px; }
+  .event-title  { font-size:12px; color:#c9a84c !important; }
+  .event-meta   { font-size:8px; color:#d4b97a !important; margin-bottom:6px; }
+  .stats-row    { gap:3px; margin-bottom:3px; }
+  .stat-box     { padding:3px 6px; min-width:48px; background:rgba(0,0,0,.5) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .stat-num     { font-size:13px; }
+  .stat-label   { font-size:7px; }
+  .sync-bar,.filter-tabs,.search-row,.action-row,.toast,
+  .modal-backdrop { display:none !important; }
+  .guest-list   { padding:2px 4px; }
+  .guest-card   { display:none !important; }
+  .print-header { display:block !important; font-size:11px; font-weight:700; color:#2a1f0e;
+                  padding:4px 2px 3px; border-bottom:2px solid #c9a84c; margin-bottom:4px; }
+  .print-table  { display:table !important; width:100%; border-collapse:collapse; font-size:9px; }
+  .print-table th { background:#2a1f0e !important; color:#c9a84c !important; -webkit-print-color-adjust:exact;
+                    print-color-adjust:exact; padding:3px 4px; text-align:left; border:1px solid #555; white-space:nowrap; }
+  .print-table td { padding:2px 4px; border:1px solid #ccc; vertical-align:middle; }
+  .print-table tr { page-break-inside:avoid; break-inside:avoid; }
+  .print-table tr:nth-child(even) td { background:#faf8f3 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+.print-header { display:none; }
+.print-table  { display:none; }
+</style>
+</head>
+<body>
+
+<div class="event-header">
+  <div class="event-title">上條智子さん カムバックパーティー</div>
+  <div class="event-meta">2026年6月15日（月）　ホテルグランヴィア岡山　4階フェニックス　18:30〜</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="s-total">-</div><div class="stat-label">総人数</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-need">-</div><div class="stat-label">案内要</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-sent">-</div><div class="stat-label">案内済</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-yes">-</div><div class="stat-label">出席○</div></div>
+    <div class="stat-box"><div class="stat-num" id="s-no">-</div><div class="stat-label">欠席×</div></div>
+  </div>
+  <div class="sync-bar sync-ing" id="syncStatus">⏳ 接続中...</div>
+</div>
+
+<div class="filter-tabs" id="filterTabs">
+  <button class="tab active" data-filter="all">全員</button>
+  <button class="tab" data-filter="required">案内要</button>
+  <button class="tab" data-filter="notneed">案内不要</button>
+  <button class="tab" data-filter="sent">案内済</button>
+  <button class="tab" data-filter="pending">未返信</button>
+  <button class="tab" data-filter="yes">出席○</button>
+  <button class="tab" data-filter="no">欠席×</button>
+</div>
+
+<div class="search-row">
+  <input class="search-input" id="searchInput" placeholder="氏名・企業名で検索...">
+  <select class="assigned-filter-select" id="assignedFilter">
+    <option value="">担当：全員</option>
+    <option value="上條">上條</option>
+    <option value="高島屋">高島屋</option>
+    <option value="磯島">磯島</option>
+    <option value="高山">高山</option>
+    <option value="石川">石川</option>
+    <option value="その他">その他</option>
+    <option value="__unset__">未設定</option>
+  </select>
+</div>
+
+<div class="action-row">
+  <button class="btn btn-undo"   id="undoBtn"   disabled>↩️ 元に戻す</button>
+  <button class="btn btn-add"    id="btnAdd"   >＋ 追加</button>
+  <button class="btn btn-excel"  id="btnExcel" >📤 Excel出力</button>
+  <button class="btn btn-pdf"    id="btnPdf"   >🖨️ PDF出力</button>
+  <button class="btn btn-import" id="btnImport">📥 インポート</button>
+  <button class="btn btn-dedup"  id="btnDedup" >🔍 重複統合</button>
+</div>
+
+<!-- 担当者別Excel出力モーダル -->
+<div class="modal-backdrop" id="csvModal">
+  <div class="modal">
+    <h3>📤 Excel出力（.xlsx）</h3>
+    <p class="hint">ステータスで絞り込み：</p>
+    <select id="csvFilter">
+      <option value="all">全員</option>
+      <option value="required">案内要</option>
+      <option value="notneed">案内不要</option>
+      <option value="sent">案内済</option>
+      <option value="pending">未返信</option>
+      <option value="yes">出席○</option>
+      <option value="no">欠席×</option>
+    </select>
+    <p class="hint">担当者で絞り込み：</p>
+    <select id="csvAssigned">
+      <option value="">全担当者</option>
+      <option value="上條">上條</option>
+      <option value="高島屋">高島屋</option>
+      <option value="磯島">磯島</option>
+      <option value="高山">高山</option>
+      <option value="石川">石川</option>
+      <option value="その他">その他</option>
+      <option value="__unset__">担当未設定</option>
+    </select>
+    <div class="modal-btns">
+      <button class="modal-cancel"  data-close="csvModal">キャンセル</button>
+      <button class="modal-confirm" id="confirmCsv">ダウンロード</button>
+    </div>
+  </div>
+</div>
+<div class="action-row" style="display:none" id="dummy-close">
+</div>
+
+<div class="guest-list" id="guestList"><div class="empty">データを読み込み中...</div></div>
+<div class="toast" id="toast"></div>
+
+<!-- 追加モーダル -->
+<div class="modal-backdrop" id="addModal">
+  <div class="modal">
+    <h3>ゲストを追加</h3>
+    <input type="text" id="addName"    placeholder="氏名（例：山田 太郎）">
+    <input type="text" id="addCompany" placeholder="会社名">
+    <input type="text" id="addRole"    placeholder="役職">
+    <div class="modal-btns">
+      <button class="modal-cancel"  data-close="addModal">キャンセル</button>
+      <button class="modal-confirm" id="confirmAdd">追加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 編集モーダル -->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal">
+    <h3>ゲストを編集</h3>
+    <input type="text" id="editName"    placeholder="氏名">
+    <input type="text" id="editCompany" placeholder="会社名">
+    <input type="text" id="editRole"    placeholder="役職">
+    <div class="modal-btns">
+      <button class="modal-cancel"  data-close="editModal">キャンセル</button>
+      <button class="modal-confirm" id="confirmEdit">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- インポートモーダル -->
+<div class="modal-backdrop" id="importModal">
+  <div class="modal">
+    <h3>📥 インポート</h3>
+    <p class="hint">① Excelファイル（.xlsx）を選択またはドロップ</p>
+    <div class="dropzone" id="dropzone">
+      <div>📂 ここにExcelファイルをドロップ<br>またはタップして選択</div>
+      <input type="file" id="xlsxFile" accept=".xlsx,.xls">
+    </div>
+    <p class="hint" style="text-align:center;color:#bbb;">── または ──</p>
+    <p class="hint">② Googleスプレッドシートの共有URL</p>
+    <input type="text" id="importUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+    <p class="hint" style="text-align:center;color:#bbb;">── または ──</p>
+    <p class="hint">③ セルをコピーして貼り付け（氏名・会社名・役職の順）</p>
+    <textarea id="importPaste" placeholder="山田 太郎&#9;株式会社〇〇&#9;部長&#10;鈴木 花子&#9;〇〇商事&#9;課長"></textarea>
+    <p class="hint" style="color:#c9a84c;">⚠️ 既存データと氏名が重複する場合は自動でスキップします</p>
+    <div class="modal-btns">
+      <button class="modal-cancel"  data-close="importModal">キャンセル</button>
+      <button class="modal-confirm" id="confirmImport">インポート</button>
+    </div>
+  </div>
+</div>
+
+<!-- 重複統合モーダル -->
+<div class="modal-backdrop" id="dedupModal">
+  <div class="modal">
+    <h3>🔍 重複氏名の統合</h3>
+    <p class="hint">スペースの有無を除いて同一氏名を検出しています。<br>✅ チェックあり → 統合（重複を削除）　□ チェックなし → スキップ（別人として保持）</p>
+    <div class="dedup-list" id="dedupList"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" data-close="dedupModal">キャンセル</button>
+      <button class="modal-danger" id="confirmDedup">統合する</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF出力モーダル -->
+<div class="modal-backdrop" id="pdfModal">
+  <div class="modal">
+    <h3>🖨️ PDF出力</h3>
+    <p class="hint">ステータスで絞り込み：</p>
+    <select id="pdfFilter">
+      <option value="all">全員</option>
+      <option value="required">案内要</option>
+      <option value="notneed">案内不要</option>
+      <option value="sent">案内済</option>
+      <option value="pending">未返信（案内済で出欠未回答）</option>
+      <option value="yes">出席○</option>
+      <option value="no">欠席×</option>
+    </select>
+    <p class="hint">担当者で絞り込み：</p>
+    <select id="pdfAssigned">
+      <option value="">全担当者</option>
+      <option value="上條">上條</option>
+      <option value="高島屋">高島屋</option>
+      <option value="磯島">磯島</option>
+      <option value="高山">高山</option>
+      <option value="石川">石川</option>
+      <option value="その他">その他</option>
+      <option value="__unset__">担当未設定</option>
+    </select>
+    <p class="hint" style="color:#888;">※ ブラウザの印刷ダイアログで「PDFに保存」を選択してください。<br>余白は最小（なし）に設定すると最適です。</p>
+    <div class="modal-btns">
+      <button class="modal-cancel"  data-close="pdfModal">キャンセル</button>
+      <button class="modal-confirm" id="confirmPdf">印刷する</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://cdn.jsdelivr.net/npm/firebase@10.12.0/app/+esm";
+import { getDatabase, ref, onValue, set, push, remove, update } from "https://cdn.jsdelivr.net/npm/firebase@10.12.0/database/+esm";
+
+const app = initializeApp({
+  apiKey: "AIzaSyBfF02pCkThqYHpXNqEXDKTjDnDufVT6X8",
+  authDomain: "satoko-kamijo-come-back-party.firebaseapp.com",
+  databaseURL: "https://satoko-kamijo-come-back-party-default-rtdb.firebaseio.com",
+  projectId: "satoko-kamijo-come-back-party",
+  storageBucket: "satoko-kamijo-come-back-party.firebasestorage.app",
+  messagingSenderId: "426693851796",
+  appId: "1:426693851796:web:950bfb419626a4dd8bd281"
+});
+
+const db = getDatabase(app);
+const guestsRef = ref(db, 'guests');
+
+let guests = {};
+let currentFilter = 'all';
+let editKey = null;
+let history = [];
+
+const $ = id => document.getElementById(id);
+
+function setSyncStatus(msg, cls) {
+  const el = $('syncStatus');
+  el.textContent = msg;
+  el.className = 'sync-bar ' + cls;
+}
+
+function showToast(msg, color = '#2d6a4f') {
+  const t = $('toast');
+  t.textContent = msg; t.style.background = color; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function openModal(id)  { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+
+function pushHistory() {
+  history.push(JSON.stringify(guests));
+  if (history.length > 50) history.shift();
+  $('undoBtn').disabled = false;
+}
+
+function guestArray() {
+  return Object.entries(guests).map(([k, v]) => ({ ...v, _key: k }));
+}
+
+// フィルタリング共通関数
+function filterList(filter, searchQ) {
+  let list = guestArray();
+  if (filter === 'required') list = list.filter(g => g.status === 'required');
+  else if (filter === 'notneed') list = list.filter(g => g.status === 'notneed');
+  else if (filter === 'sent')    list = list.filter(g => g.status === 'sent');
+  else if (filter === 'pending') list = list.filter(g => g.status === 'sent' && !g.attendance);
+  else if (filter === 'yes')     list = list.filter(g => g.attendance === 'yes');
+  else if (filter === 'no')      list = list.filter(g => g.attendance === 'no');
+  if (searchQ) list = list.filter(g => (g.name || '').includes(searchQ) || (g.company || '').includes(searchQ));
+  // 担当者フィルター
+  const af = $('assignedFilter') ? $('assignedFilter').value : '';
+  if (af === '__unset__') list = list.filter(g => !g.assigned);
+  else if (af)            list = list.filter(g => g.assigned === af);
+  return list;
+}
+
+function render() {
+  const q = $('searchInput').value.trim();
+  const list = filterList(currentFilter, q);
+
+  const all = guestArray();
+  $('s-total').textContent = all.length;
+  $('s-need').textContent  = all.filter(g => g.status === 'required').length;
+  $('s-sent').textContent  = all.filter(g => g.status === 'sent').length;
+  $('s-yes').textContent   = all.filter(g => g.attendance === 'yes').length;
+  $('s-no').textContent    = all.filter(g => g.attendance === 'no').length;
+
+  const container = $('guestList');
+  if (!list.length) { container.innerHTML = '<div class="empty">該当するゲストがいません</div>'; return; }
+
+  container.innerHTML = list.map((g, i) => {
+    const bc = g.status === 'required' ? 'badge-required' : g.status === 'sent' ? 'badge-sent' : 'badge-notneed';
+    const bl = g.status === 'required' ? '案内要' : g.status === 'sent' ? '案内済' : '案内不要';
+    const safeName = (g.name || '').replace(/"/g, '&quot;');
+    return `
+    <div class="guest-card">
+      <div class="guest-card-top">
+        <span class="guest-num">${i + 1}</span>
+        <div class="toggle-wrap" style="background:${g.invite ? '#2d6a4f' : '#ccc'}" data-action="toggle" data-key="${g._key}" data-val="${g.invite ? '0' : '1'}">
+          <div class="toggle-thumb" style="left:${g.invite ? '21px' : '3px'}"></div>
+        </div>
+        <span class="badge ${bc}">${bl}</span>
+        <span class="guest-name">${g.name || ''}</span>
+        <span class="guest-role">${g.role || ''}</span>
+      </div>
+      <div class="company-row">🏢 ${g.company || ''}</div>
+      <div class="guest-fields">
+        <div class="field-group">
+          <div class="field-label">担当</div>
+          <select class="field-select" data-action="field" data-key="${g._key}" data-field="assigned">
+            <option value="" ${!g.assigned ? 'selected' : ''}>—</option>
+            <option value="上條"   ${g.assigned === '上條'   ? 'selected' : ''}>上條</option>
+            <option value="高島屋" ${g.assigned === '高島屋' ? 'selected' : ''}>高島屋</option>
+            <option value="磯島"   ${g.assigned === '磯島'   ? 'selected' : ''}>磯島</option>
+            <option value="高山"   ${g.assigned === '高山'   ? 'selected' : ''}>高山</option>
+            <option value="石川"   ${g.assigned === '石川'   ? 'selected' : ''}>石川</option>
+            <option value="その他" ${g.assigned === 'その他' ? 'selected' : ''}>その他</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">出欠</div>
+          <select class="field-select" data-action="attendance" data-key="${g._key}">
+            <option value="" ${!g.attendance ? 'selected' : ''}>—</option>
+            <option value="yes" ${g.attendance === 'yes' ? 'selected' : ''}>○ 出席</option>
+            <option value="no"  ${g.attendance === 'no'  ? 'selected' : ''}>× 欠席</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">案内日</div>
+          <input class="field-input" type="date" value="${g.inviteDate || ''}" data-action="field" data-key="${g._key}" data-field="inviteDate">
+        </div>
+        <div class="field-group">
+          <div class="field-label">返信日</div>
+          <input class="field-input" type="date" value="${g.replyDate || ''}" data-action="field" data-key="${g._key}" data-field="replyDate">
+        </div>
+      </div>
+      <div class="memo-group">
+        <div class="field-label">メモ</div>
+        <textarea class="field-textarea" data-action="field" data-key="${g._key}" data-field="memo">${g.memo || ''}</textarea>
+      </div>
+      <div class="card-actions">
+        <button class="btn-edit"   data-action="edit"   data-key="${g._key}">✏️ 編集</button>
+        <button class="btn-delete" data-action="delete" data-key="${g._key}" data-name="${safeName}">🗑️ 削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Firebase リアルタイム同期
+onValue(guestsRef, (snapshot) => {
+  guests = snapshot.val() || {};
+  render();
+  setSyncStatus('🟢 リアルタイム同期中', 'sync-ok');
+}, () => setSyncStatus('🔴 接続エラー', 'sync-err'));
+
+// イベント委譲（クリック）
+$('guestList').addEventListener('click', async (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const { action, key, val, name } = el.dataset;
+  if (action === 'toggle') {
+    pushHistory();
+    const inv = val === '1';
+    await update(ref(db, `guests/${key}`), { invite: inv, status: inv ? 'required' : 'notneed' });
+  } else if (action === 'edit') {
+    editKey = key;
+    const g = guests[key];
+    $('editName').value    = g.name    || '';
+    $('editCompany').value = g.company || '';
+    $('editRole').value    = g.role    || '';
+    openModal('editModal');
+  } else if (action === 'delete') {
+    if (!confirm(`「${name}」を削除しますか？`)) return;
+    pushHistory();
+    await remove(ref(db, `guests/${key}`));
+    showToast('削除しました');
+  }
+});
+
+// イベント委譲（変更）
+$('guestList').addEventListener('change', async (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const { action, key, field } = el.dataset;
+  if (action === 'field') {
+    pushHistory();
+    await update(ref(db, `guests/${key}`), { [field]: el.value });
+  } else if (action === 'attendance') {
+    pushHistory();
+    const updates = { attendance: el.value };
+    // 出欠が入力されたら案内要・案内不要どちらでも案内済に更新
+    if (el.value && guests[key]?.status !== 'sent') updates.status = 'sent';
+    // 出欠がクリアされた場合は案内要に戻す
+    if (!el.value && guests[key]?.status === 'sent') updates.status = 'required';
+    await update(ref(db, `guests/${key}`), updates);
+  }
+});
+
+// フィルタータブ
+$('filterTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  currentFilter = tab.dataset.filter;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  render();
+});
+
+$('searchInput').addEventListener('input', render);
+$('assignedFilter').addEventListener('change', render);
+
+// 元に戻す
+$('undoBtn').addEventListener('click', async () => {
+  if (!history.length) return;
+  const prev = JSON.parse(history.pop());
+  await set(guestsRef, prev);
+  $('undoBtn').disabled = history.length === 0;
+  showToast('元に戻しました');
+});
+
+// ゲスト追加
+$('btnAdd').addEventListener('click', () => {
+  $('addName').value = ''; $('addCompany').value = ''; $('addRole').value = '';
+  openModal('addModal');
+});
+$('confirmAdd').addEventListener('click', async () => {
+  const name = $('addName').value.trim();
+  if (!name) return alert('氏名を入力してください');
+  pushHistory();
+  await push(guestsRef, { name, company: $('addCompany').value.trim(), role: $('addRole').value.trim(), invite: true, status: 'required', attendance: '', inviteDate: '', replyDate: '', memo: '', assigned: '' });
+  closeModal('addModal');
+  showToast('ゲストを追加しました');
+});
+
+// ゲスト編集
+$('confirmEdit').addEventListener('click', async () => {
+  const name = $('editName').value.trim();
+  if (!name) return alert('氏名を入力してください');
+  pushHistory();
+  await update(ref(db, `guests/${editKey}`), { name, company: $('editCompany').value.trim(), role: $('editRole').value.trim() });
+  closeModal('editModal');
+  showToast('編集を保存しました');
+});
+
+// =====================================
+// Excel出力（.xlsx）― ステータス×担当者フィルター対応
+// =====================================
+const ASSIGNED_LIST = ['上條', '高島屋', '磯島', '高山', '石川', 'その他'];
+
+// リストからxlsxを生成してダウンロード
+function downloadXlsx(list, filename) {
+  if (!window.XLSX) { alert('XLSXライブラリの読み込み中です。少し待ってから再試行してください。'); return; }
+  const header = ['番号', '氏名', '会社名', '役職', '担当', 'ステータス', '出欠', '案内日', '返信日', 'メモ'];
+  const statusLabel = { required:'案内要', sent:'案内済', notneed:'案内不要' };
+  const rows = list.map((g, i) => [
+    i + 1,
+    g.name        || '',
+    g.company     || '',
+    g.role        || '',
+    g.assigned    || '',
+    statusLabel[g.status] || g.status || '',
+    g.attendance === 'yes' ? '○' : g.attendance === 'no' ? '×' : '',
+    g.inviteDate  || '',
+    g.replyDate   || '',
+    g.memo        || ''
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  // 列幅設定
+  ws['!cols'] = [5,14,20,10,8,8,5,10,10,20].map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ゲストリスト');
+  XLSX.writeFile(wb, filename);
+}
+
+// filterList に担当者フィルターを追加した拡張版
+function filterListEx(statusFilter, assignedFilter, searchQ) {
+  let list = filterList(statusFilter, searchQ);
+  if (assignedFilter === '__unset__') {
+    list = list.filter(g => !g.assigned);
+  } else if (assignedFilter) {
+    list = list.filter(g => g.assigned === assignedFilter);
+  }
+  return list;
+}
+
+// Excel出力ボタン → モーダルを開く
+$('btnExcel').addEventListener('click', () => {
+  $('csvFilter').value    = currentFilter;
+  $('csvAssigned').value  = '';
+  openModal('csvModal');
+});
+
+// Excel出力実行
+$('confirmCsv').addEventListener('click', () => {
+  const statusFilter   = $('csvFilter').value;
+  const assignedFilter = $('csvAssigned').value;
+  const list = filterListEx(statusFilter, assignedFilter, '');
+  if (!list.length) { showToast('対象データがありません', '#c9a84c'); return; }
+
+  const statusLabel  = { all:'全員', required:'案内要', notneed:'案内不要', sent:'案内済', pending:'未返信', yes:'出席○', no:'欠席×' };
+  const assignedPart = assignedFilter === '__unset__' ? '担当未設定'
+                     : assignedFilter               ? assignedFilter
+                     : '全担当者';
+  const filename = `ゲストリスト_${statusLabel[statusFilter] || statusFilter}_${assignedPart}.xlsx`;
+
+  downloadXlsx(list, filename);
+  closeModal('csvModal');
+  showToast(`${list.length}件をExcel出力しました`);
+});
+
+// =====================================
+// PDF出力（印刷）― ステータス×担当者フィルター対応
+// =====================================
+$('btnPdf').addEventListener('click', () => {
+  $('pdfFilter').value    = currentFilter;
+  $('pdfAssigned').value  = '';
+  openModal('pdfModal');
+});
+
+$('confirmPdf').addEventListener('click', () => {
+  const statusFilter   = $('pdfFilter').value;
+  const assignedFilter = $('pdfAssigned').value;
+  const origFilter     = currentFilter;
+
+  const statusLabel  = { all:'全員', required:'案内要', notneed:'案内不要', sent:'案内済', pending:'未返信', yes:'出席○', no:'欠席×' };
+  const assignedPart = assignedFilter === '__unset__' ? '担当未設定'
+                     : assignedFilter ? `担当：${assignedFilter}` : '';
+  const label = assignedPart
+    ? `${statusLabel[statusFilter] || statusFilter}　${assignedPart}`
+    : statusLabel[statusFilter] || statusFilter;
+
+  const list = filterListEx(statusFilter, assignedFilter, '');
+
+  if (!list.length) { showToast('対象データがありません', '#c9a84c'); closeModal('pdfModal'); return; }
+
+  // カードを非表示にして印刷テーブルを挿入
+  const container = $('guestList');
+  // 既存の印刷テーブル・ヘッダーを削除
+  container.querySelectorAll('.print-table,.print-header').forEach(el => el.remove());
+
+  // ヘッダー
+  const ph = document.createElement('div');
+  ph.className = 'print-header';
+  ph.textContent = `【${label}】${list.length}名`;
+  container.prepend(ph);
+
+  // 表形式テーブル生成
+  const statusShort = { required:'案内要', sent:'案内済', notneed:'案内不要' };
+  const attLabel    = v => v === 'yes' ? '○' : v === 'no' ? '×' : '';
+  const rows = list.map((g, i) => `<tr>
+    <td style="text-align:center;color:#999">${i + 1}</td>
+    <td><strong>${g.name || ''}</strong></td>
+    <td>${g.company || ''}</td>
+    <td>${g.role || ''}</td>
+    <td>${g.assigned || ''}</td>
+    <td style="text-align:center">${statusShort[g.status] || ''}</td>
+    <td style="text-align:center;font-size:11px">${attLabel(g.attendance)}</td>
+    <td>${g.inviteDate || ''}</td>
+    <td>${g.replyDate || ''}</td>
+    <td>${g.memo || ''}</td>
+  </tr>`).join('');
+
+  const table = document.createElement('table');
+  table.className = 'print-table';
+  table.innerHTML = `<thead><tr>
+    <th style="width:24px">No</th>
+    <th style="width:80px">氏名</th>
+    <th style="width:120px">会社名</th>
+    <th style="width:60px">役職</th>
+    <th style="width:44px">担当</th>
+    <th style="width:36px">状態</th>
+    <th style="width:24px">出欠</th>
+    <th style="width:60px">案内日</th>
+    <th style="width:60px">返信日</th>
+    <th>メモ</th>
+  </tr></thead><tbody>${rows}</tbody>`;
+  container.appendChild(table);
+
+  closeModal('pdfModal');
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      // 印刷後クリーンアップ
+      container.querySelectorAll('.print-table,.print-header').forEach(el => el.remove());
+      currentFilter = origFilter;
+      $('searchInput').value = '';
+      render();
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.filter === origFilter);
+      });
+    }, 500);
+  }, 100);
+});
+
+// =====================================
+// インポート（Excel / URL / 貼り付け）
+// =====================================
+$('btnImport').addEventListener('click', () => {
+  $('importUrl').value = '';
+  $('importPaste').value = '';
+  $('xlsxFile').value = '';
+  openModal('importModal');
+});
+
+// ドロップゾーン
+const dz = $('dropzone');
+dz.addEventListener('click', () => $('xlsxFile').click());
+dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('hover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('hover'));
+dz.addEventListener('drop', (e) => {
+  e.preventDefault(); dz.classList.remove('hover');
+  const f = e.dataTransfer.files[0];
+  if (f) { $('xlsxFile').files; handleXlsxFile(f); }
+});
+$('xlsxFile').addEventListener('change', (e) => {
+  if (e.target.files[0]) handleXlsxFile(e.target.files[0]);
+});
+
+function handleXlsxFile(file) {
+  dz.querySelector('div').textContent = `📄 ${file.name}`;
+}
+
+// 既存氏名セット取得
+function existingNames() {
+  return new Set(guestArray().map(g => (g.name || '').trim()));
+}
+
+async function importRows(rows) {
+  // ヘッダー行スキップ
+  const headers = ['氏名', '名前', 'name'];
+  if (rows.length && headers.some(h => (rows[0][0] || '').toLowerCase().includes(h.toLowerCase()))) rows.shift();
+
+  const names = existingNames();
+  pushHistory();
+  let added = 0, skipped = 0;
+  for (const row of rows) {
+    const name = (row[0] || '').trim();
+    if (!name) continue;
+    if (names.has(name)) { skipped++; continue; } // 重複スキップ
+    await push(guestsRef, {
+      name,
+      company: (row[1] || '').trim(),
+      role:    (row[2] || '').trim(),
+      invite: true, status: 'required',
+      attendance: '', inviteDate: '', replyDate: '', memo: '', assigned: ''
+    });
+    names.add(name);
+    added++;
+  }
+  return { added, skipped };
+}
+
+$('confirmImport').addEventListener('click', async () => {
+  const xlsxFile = $('xlsxFile').files[0];
+  const paste    = $('importPaste').value.trim();
+  const url      = $('importUrl').value.trim();
+  let rows = [];
+
+  if (xlsxFile) {
+    // Excelファイルを読み込む
+    if (!window.XLSX) return alert('XLSXライブラリの読み込み中です。少し待ってから再試行してください。');
+    try {
+      const data = await xlsxFile.arrayBuffer();
+      const wb   = XLSX.read(data, { type: 'array' });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      rows = json.map(r => [String(r[0]||''), String(r[1]||''), String(r[2]||'')]);
+    } catch(e) { return alert('Excelファイルの読み込みに失敗しました: ' + e.message); }
+
+  } else if (paste) {
+    rows = paste.split('\n').map(l => l.split('\t').map(c => c.trim())).filter(r => r[0]);
+
+  } else if (url) {
+    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (!match) return alert('URLの形式が正しくありません');
+    const gidMatch = url.match(/gid=([0-9]+)/);
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gidMatch ? gidMatch[1] : '0'}`;
+    try {
+      const res  = await fetch(csvUrl);
+      const text = await res.text();
+      rows = text.split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim())).filter(r => r[0]);
+    } catch { return alert('取得に失敗しました。シートを「リンクを知っている全員」に共有してください。'); }
+
+  } else {
+    return alert('Excelファイルを選択するか、URLまたはデータを貼り付けてください');
+  }
+
+  const { added, skipped } = await importRows(rows);
+  closeModal('importModal');
+  const msg = skipped > 0
+    ? `${added}件を追加しました（重複${skipped}件はスキップ）`
+    : `${added}件をインポートしました`;
+  showToast(msg, added > 0 ? '#2d6a4f' : '#c9a84c');
+});
+
+// =====================================
+// 重複統合（スペース除去で比較、個別チェックで除外可能）
+// =====================================
+function normName(name) {
+  return (name || '').replace(/[\s　]/g, '');
+}
+
+$('btnDedup').addEventListener('click', () => {
+  const arr = guestArray();
+  // スペース除去した名前でグループ化
+  const groups = {};
+  arr.forEach(g => {
+    const key = normName(g.name);
+    if (!key) return;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(g);
+  });
+  const dupes = Object.entries(groups).filter(([, v]) => v.length > 1);
+
+  if (!dupes.length) {
+    showToast('重複する氏名はありません', '#c9a84c');
+    return;
+  }
+
+  // グループデータを保存（チェックボックスで参照）
+  window._dedupGroups = dupes;
+
+  const listEl = $('dedupList');
+  listEl.innerHTML = dupes.map(([normKey, members], idx) => {
+    const nameList = members.map((g, mi) =>
+      `<div><b>${g.name}</b>　${g.company || '会社名なし'}</div>`
+    ).join('');
+    return `<div class="dedup-item">
+      <input type="checkbox" class="dedup-chk" data-idx="${idx}" checked>
+      <div class="dedup-item-body">
+        <div>${members[0].name}<span>${members.length}件 → 1件に統合</span></div>
+        <div class="dedup-item-names">${nameList}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  openModal('dedupModal');
+});
+
+$('confirmDedup').addEventListener('click', async (e) => {
+  e.stopPropagation();
+  const groups = window._dedupGroups || [];
+  const checked = document.querySelectorAll('.dedup-chk:checked');
+  const checkedIdxs = new Set([...checked].map(el => Number(el.dataset.idx)));
+
+  // チェックされたグループの2件目以降を削除
+  const keysToDelete = [];
+  groups.forEach(([ , members], idx) => {
+    if (!checkedIdxs.has(idx)) return;
+    members.slice(1).forEach(g => keysToDelete.push(g._key));
+  });
+
+  if (!keysToDelete.length) { closeModal('dedupModal'); return; }
+  pushHistory();
+  for (const key of keysToDelete) {
+    await remove(ref(db, `guests/${key}`));
+  }
+  closeModal('dedupModal');
+  showToast(`重複${keysToDelete.length}件を削除しました`);
+});
+
+// キャンセルボタン共通（confirmクラスのボタンは除外）
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-close]');
+  if (btn && !btn.classList.contains('modal-confirm') && !btn.classList.contains('modal-danger')) {
+    closeModal(btn.dataset.close);
+  }
+});
+</script>
+</body>
+</html>
