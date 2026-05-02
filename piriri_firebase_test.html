@@ -624,14 +624,7 @@ function persist(){
 
 // クラウドに保存
 
-    .catch(function(ex){
-      setSyncStatus("ng", "⚠ オフライン");
-      if(showToast)tst("保存失敗: "+ex);
-    });
-
-
-
-function updateCloudStatus(){
+    function updateCloudStatus(){
   var el=document.getElementById("cloud-status");
   if(!el)return;
   
