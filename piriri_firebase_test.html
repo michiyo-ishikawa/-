@@ -835,17 +835,16 @@ function expPdf(){
 function closePop(){document.getElementById("popover").style.display="none";}
 
 // ============= 起動処理 =============
-(function init(){
+function init(){
   // まず localStorage から復元
   restoreFromLS();
   uhdr();
   rEvList();
   updateCloudStatus();
   setSyncStatus("ok","Firebase準備OK");
-  // クラウドが有効なら、起動時に自動でクラウドから読み込み
+   // クラウドが有効なら、起動時に自動でクラウドから読み込み
   
-})();
-
+init();
    </script>
 </body>
 </html>   
