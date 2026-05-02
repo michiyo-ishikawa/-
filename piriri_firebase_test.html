@@ -879,6 +879,11 @@ window.manualSave = async function(){
     alert("保存失敗：" + e.message);
   }
 };
+ window.addEventListener("load", function(){
+  if (typeof window.init === "function") {
+    window.init();
+  }
+}); 
 </script>
 </body>
 </html>
